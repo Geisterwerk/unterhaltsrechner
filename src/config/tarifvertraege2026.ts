@@ -1,0 +1,172 @@
+import type { TarifConfig } from '../types';
+
+/**
+ * Monatliche Tabellenentgelte (Vollzeit) ausgewählter Tarifverträge des öffentlichen Dienstes, gültig im Jahr 2026.
+ *
+ * Quelle der Werte: oeffentlicher-dienst.info (Entgelttabellen 2026, abgerufen November 2026) – nicht der
+ * amtliche Tariftext. Vor Verwendung mit den Veröffentlichungen der Tarifparteien abgleichen.
+ * Jahressonderzahlung: Prozentsatz des monatlichen Tabellenentgelts (vereinfachte Bemessungsgrundlage).
+ *
+ * Für neue Tabellen eine neue Datei mit derselben Struktur anlegen und in `src/config/index.ts` eintragen.
+ */
+export const tarifvertraege2026: TarifConfig = {
+  sourceNote:
+    'Tabellenentgelte laut oeffentlicher-dienst.info (Stand 2026) – vor Verwendung mit dem Tariftext abgleichen. Zulagen, Leistungsentgelt und Zusatzversorgung bleiben unberücksichtigt.',
+  tabellen: [
+    {
+      id: 'tvoed-vka',
+      name: 'TVöD VKA (Kommunen)',
+      gueltigAb: '2026-05-01',
+      quelle: 'https://oeffentlicher-dienst.info/tvoed/vka/',
+      hinweis:
+        'Jahressonderzahlung ab 2026 einheitlich 85 % (Besonderer Teil B/K in E 1–E 8 abweichend 90 %).',
+      gruppenLabel: 'Entgeltgruppe',
+      stufenLabel: 'Stufe',
+      gruppen: [
+        { id: 'E 15Ü', werte: [null, 7149.93, 7901.07, 8612.70, 9087.16, 9197.81], jahressonderzahlung: 85 },
+        { id: 'E 15', werte: [5827.86, 6208.96, 6634.05, 7214.39, 7811.37, 8204.11], jahressonderzahlung: 85 },
+        { id: 'E 14', werte: [5298.27, 5643.35, 6094.01, 6594.12, 7151.57, 7551.78], jahressonderzahlung: 85 },
+        { id: 'E 13', werte: [4901.11, 5279.32, 5709.87, 6177.31, 6727.38, 7025.87], jahressonderzahlung: 85 },
+        { id: 'E 12', werte: [4415.70, 4850.91, 5359.50, 5923.82, 6586.00, 6900.18], jahressonderzahlung: 85 },
+        { id: 'E 11', werte: [4269.64, 4669.92, 5046.03, 5454.10, 6012.56, 6326.77], jahressonderzahlung: 85 },
+        { id: 'E 10', werte: [4124.53, 4438.16, 4794.69, 5181.37, 5611.95, 5753.35], jahressonderzahlung: 85 },
+        { id: 'E 9c', werte: [4010.72, 4290.50, 4594.76, 4922.61, 5275.05, 5527.70], jahressonderzahlung: 85 },
+        { id: 'E 9b', werte: [3779.84, 4039.01, 4203.56, 4690.55, 4979.11, 5313.37], jahressonderzahlung: 85 },
+        { id: 'E 9a', werte: [3658.61, 3877.94, 4097.67, 4586.77, 4697.43, 4979.97], jahressonderzahlung: 85 },
+        { id: 'E 8', werte: [3486.40, 3697.29, 3843.36, 3992.40, 4153.50, 4230.97], jahressonderzahlung: 85 },
+        { id: 'E 7', werte: [3294.98, 3537.94, 3682.69, 3828.76, 3969.05, 4045.24], jahressonderzahlung: 85 },
+        { id: 'E 6', werte: [3240.30, 3440.25, 3580.46, 3719.22, 3855.50, 3926.20], jahressonderzahlung: 85 },
+        { id: 'E 5', werte: [3124.08, 3318.04, 3449.05, 3587.78, 3716.70, 3783.33], jahressonderzahlung: 85 },
+        { id: 'E 4', werte: [2994.17, 3190.45, 3355.14, 3457.66, 3560.17, 3620.20], jahressonderzahlung: 85 },
+        { id: 'E 3', werte: [2953.13, 3164.20, 3215.57, 3332.99, 3421.10, 3501.81], jahressonderzahlung: 85 },
+        { id: 'E 2Ü', werte: [2787.52, 3028.30, 3116.51, 3234.12, 3314.92, 3433.49], jahressonderzahlung: 85 },
+        { id: 'E 2', werte: [2767.54, 2975.32, 3027.12, 3101.04, 3263.52, 3433.49], jahressonderzahlung: 85 },
+        { id: 'E 1', werte: [null, 2534.55, 2568.83, 2611.69, 2651.64, 2754.50], jahressonderzahlung: 85 },
+      ],
+    },
+    {
+      id: 'tvoed-bund',
+      name: 'TVöD Bund',
+      gueltigAb: '2026-05-01',
+      quelle: 'https://oeffentlicher-dienst.info/tvoed/bund/',
+      hinweis:
+        'E 15Ü: Stufe 6 in der Quelle nicht ausgewiesen – bitte prüfen. Jahressonderzahlung 2026: E 1–8 95 %, E 9a–12 90 %, E 13–15 75 %.',
+      gruppenLabel: 'Entgeltgruppe',
+      stufenLabel: 'Stufe',
+      gruppen: [
+        { id: 'E 15Ü', werte: [7062.92, 7814.11, 8525.72, 9000.15, 9110.86, null], jahressonderzahlung: 75 },
+        { id: 'E 15', werte: [5827.86, 6208.96, 6634.05, 7214.39, 7811.37, 8204.11], jahressonderzahlung: 75 },
+        { id: 'E 14', werte: [5298.27, 5643.35, 6094.01, 6594.12, 7151.57, 7551.78], jahressonderzahlung: 75 },
+        { id: 'E 13', werte: [4901.11, 5279.32, 5709.87, 6177.31, 6727.38, 7025.87], jahressonderzahlung: 75 },
+        { id: 'E 12', werte: [4415.70, 4850.91, 5359.50, 5923.82, 6586.00, 6900.18], jahressonderzahlung: 90 },
+        { id: 'E 11', werte: [4269.64, 4669.92, 5046.03, 5454.10, 6012.56, 6326.77], jahressonderzahlung: 90 },
+        { id: 'E 10', werte: [4124.53, 4438.16, 4794.69, 5181.37, 5611.95, 5753.35], jahressonderzahlung: 90 },
+        { id: 'E 9c', werte: [3978.29, 4249.97, 4589.09, 4958.59, 5359.19, 5487.80], jahressonderzahlung: 90 },
+        { id: 'E 9b', werte: [3833.50, 3956.17, 4267.03, 4608.13, 4983.57, 5297.75], jahressonderzahlung: 90 },
+        { id: 'E 9a', werte: [3691.52, 3917.37, 3981.07, 4196.35, 4590.80, 4746.88], jahressonderzahlung: 90 },
+        { id: 'E 8', werte: [3486.40, 3697.29, 3843.36, 3992.40, 4153.50, 4230.97], jahressonderzahlung: 95 },
+        { id: 'E 7', werte: [3294.98, 3537.94, 3682.69, 3828.76, 3969.05, 4045.24], jahressonderzahlung: 95 },
+        { id: 'E 6', werte: [3240.30, 3440.25, 3580.46, 3719.22, 3855.50, 3926.20], jahressonderzahlung: 95 },
+        { id: 'E 5', werte: [3124.08, 3318.04, 3449.05, 3587.78, 3716.70, 3783.33], jahressonderzahlung: 95 },
+        { id: 'E 4', werte: [2994.17, 3190.45, 3355.14, 3457.66, 3560.17, 3620.20], jahressonderzahlung: 95 },
+        { id: 'E 3', werte: [2953.13, 3164.20, 3215.57, 3332.99, 3421.10, 3501.81], jahressonderzahlung: 95 },
+        { id: 'E 2Ü', werte: [2787.52, 3028.30, 3116.51, 3234.12, 3314.92, 3375.24], jahressonderzahlung: 95 },
+        { id: 'E 2', werte: [2767.54, 2975.32, 3027.12, 3101.04, 3263.52, 3433.49], jahressonderzahlung: 95 },
+        { id: 'E 1', werte: [null, 2543.55, 2568.83, 2611.69, 2651.64, 2754.50], jahressonderzahlung: 95 },
+      ],
+    },
+    {
+      id: 'tv-l',
+      name: 'TV-L (Länder, ohne Hessen)',
+      gueltigAb: '2026-04-01',
+      quelle: 'https://oeffentlicher-dienst.info/tv-l/allg/',
+      hinweis:
+        'Tabelle nach Tarifeinigung vom 14.02.2026 (+2,8 %, mind. 100 €) – in der Quelle als vorläufig gekennzeichnet.',
+      gruppenLabel: 'Entgeltgruppe',
+      stufenLabel: 'Stufe',
+      gruppen: [
+        { id: 'E 15Ü', werte: [6857.14, 7587.33, 8280.33, 8734.83, 8846.64, null], jahressonderzahlung: 32.53 },
+        { id: 'E 15', werte: [5658.38, 6067.30, 6283.38, 7050.89, 7632.07, 7854.52], jahressonderzahlung: 32.53 },
+        { id: 'E 14', werte: [5143.59, 5515.90, 5821.41, 6283.38, 6991.23, 7194.48], jahressonderzahlung: 32.53 },
+        { id: 'E 13Ü', werte: [null, 5106.09, 5366.89, 6283.38, 6991.23, 7194.48], jahressonderzahlung: 46.47 },
+        { id: 'E 13', werte: [4759.37, 5106.09, 5366.89, 5873.56, 6573.97, 6764.69], jahressonderzahlung: 46.47 },
+        { id: 'E 12', werte: [4310.90, 4599.41, 5210.41, 5746.90, 6439.85, 6626.54], jahressonderzahlung: 46.47 },
+        { id: 'E 11', werte: [4178.35, 4444.86, 4748.43, 5210.41, 5881.02, 6050.95], jahressonderzahlung: 74.35 },
+        { id: 'E 10', werte: [4038.42, 4299.95, 4599.41, 4904.89, 5486.13, 5644.20], jahressonderzahlung: 74.35 },
+        { id: 'E 9b', werte: [3620.10, 3870.81, 4035.07, 4488.99, 4875.10, 5014.87], jahressonderzahlung: 74.35 },
+        { id: 'E 9a', werte: [3620.10, 3870.81, 3925.58, 4035.07, 4488.99, 4615.76], jahressonderzahlung: 74.35 },
+        { id: 'E 8', werte: [3419.52, 3659.02, 3795.52, 3925.58, 4069.31, 4158.27], jahressonderzahlung: 88.14 },
+        { id: 'E 7', werte: [3235.83, 3469.72, 3645.69, 3781.85, 3891.36, 3987.16], jahressonderzahlung: 88.14 },
+        { id: 'E 6', werte: [3186.57, 3418.08, 3547.20, 3679.20, 3768.15, 3863.96], jahressonderzahlung: 88.14 },
+        { id: 'E 5', werte: [3073.97, 3301.87, 3430.99, 3553.66, 3652.34, 3720.25], jahressonderzahlung: 88.14 },
+        { id: 'E 4', werte: [2949.24, 3179.22, 3340.61, 3430.99, 3521.39, 3579.47], jahressonderzahlung: 87.43 },
+        { id: 'E 3', werte: [2915.57, 3140.47, 3205.03, 3308.32, 3392.25, 3463.27], jahressonderzahlung: 87.43 },
+        { id: 'E 2Ü', werte: [2811.20, 3030.72, 3114.64, 3217.96, 3288.97, 3385.81], jahressonderzahlung: 87.43 },
+        { id: 'E 2', werte: [2742.84, 2953.24, 3017.80, 3082.36, 3230.84, 3385.81], jahressonderzahlung: 87.43 },
+        { id: 'E 1', werte: [null, 2534.49, 2565.06, 2601.78, 2638.51, 2730.30], jahressonderzahlung: 87.43 },
+      ],
+    },
+    {
+      id: 'tvoed-sue',
+      name: 'TVöD SuE (Sozial- und Erziehungsdienst)',
+      gueltigAb: '2026-05-01',
+      quelle: 'https://oeffentlicher-dienst.info/tvoed/sue/',
+      hinweis:
+        'Jahressonderzahlung ab 2026 einheitlich 85 % (gilt laut Quelle auch für die S-Tabelle).',
+      gruppenLabel: 'Entgeltgruppe',
+      stufenLabel: 'Stufe',
+      gruppen: [
+        { id: 'S 18', werte: [4720.52, 4840.79, 5436.63, 5883.46, 6553.73, 6963.31], jahressonderzahlung: 85 },
+        { id: 'S 17', werte: [4352.39, 4654.62, 5138.69, 5436.63, 6032.40, 6382.42], jahressonderzahlung: 85 },
+        { id: 'S 16', werte: [4263.29, 4557.82, 4885.49, 5287.64, 5734.48, 6002.61], jahressonderzahlung: 85 },
+        { id: 'S 15', werte: [4112.68, 4393.93, 4691.87, 5034.44, 5585.57, 5823.86], jahressonderzahlung: 85 },
+        { id: 'S 14', werte: [4073.39, 4351.17, 4682.24, 5019.00, 5391.41, 5652.06], jahressonderzahlung: 85 },
+        { id: 'S 13', werte: [3978.03, 4248.70, 4617.39, 4915.26, 5287.64, 5473.83], jahressonderzahlung: 85 },
+        { id: 'S 12', werte: [3967.57, 4237.49, 4590.75, 4903.53, 5290.81, 5454.65], jahressonderzahlung: 85 },
+        { id: 'S 11b', werte: [3915.12, 4181.19, 4368.13, 4844.78, 5217.14, 5440.57], jahressonderzahlung: 85 },
+        { id: 'S 11a', werte: [3846.25, 4106.12, 4291.48, 4766.33, 5138.69, 5362.12], jahressonderzahlung: 85 },
+        { id: 'S 9', werte: [3648.68, 3887.42, 4166.69, 4580.02, 4970.99, 5272.60], jahressonderzahlung: 85 },
+        { id: 'S 8b', werte: [3578.87, 3812.64, 4091.94, 4503.48, 4892.59, 5190.90], jahressonderzahlung: 85 },
+        { id: 'S 8a', werte: [3509.44, 3738.13, 3976.82, 4207.08, 4432.16, 4668.84], jahressonderzahlung: 85 },
+        { id: 'S 7', werte: [3426.93, 3649.60, 3871.14, 4098.95, 4270.11, 4528.02], jahressonderzahlung: 85 },
+        { id: 'S 4', werte: [3291.46, 3504.21, 3698.06, 3829.61, 3956.37, 4156.33], jahressonderzahlung: 85 },
+        { id: 'S 3', werte: [3119.87, 3320.05, 3506.28, 3677.28, 3755.52, 3848.98], jahressonderzahlung: 85 },
+        { id: 'S 2', werte: [2908.36, 3030.97, 3121.67, 3220.16, 3330.92, 3441.69], jahressonderzahlung: 85 },
+      ],
+    },
+    {
+      id: 'tv-ba',
+      name: 'TV-BA (Bundesagentur für Arbeit)',
+      gueltigAb: '2026-05-01',
+      quelle: 'https://oeffentlicher-dienst.info/tv-ba/',
+      hinweis:
+        'Jahressonderzahlung 2026: TE VIII–V 95 %, TE IV–II 90 %, TE I 75 % (inkl. Funktionsstufen). Funktionsstufen unabhängig von der Entwicklungsstufe, bei Teilzeit anteilig. AT-Gruppen nicht enthalten.',
+      gruppenLabel: 'Tätigkeitsebene',
+      stufenLabel: 'Entwicklungsstufe',
+      gruppen: [
+        { id: 'TE I', werte: [5508.23, 6074.07, 6418.24, 6775.52, 7163.42, 7567.33], jahressonderzahlung: 75 },
+        { id: 'TE II', werte: [4971.59, 5447.00, 5805.73, 6135.33, 6463.44, 6835.30], jahressonderzahlung: 90 },
+        { id: 'TE III', werte: [4537.02, 5015.33, 5283.65, 5582.66, 5881.58, 6253.46], jahressonderzahlung: 90 },
+        { id: 'TE IV', werte: [4099.09, 4486.22, 4728.06, 4975.11, 5253.85, 5531.03], jahressonderzahlung: 90 },
+        { id: 'TE V', werte: [3240.69, 3530.78, 3698.89, 3879.18, 4078.74, 4293.80], jahressonderzahlung: 95 },
+        { id: 'TE VI', werte: [2997.50, 3248.74, 3407.32, 3574.01, 3754.32, 3950.11], jahressonderzahlung: 95 },
+        { id: 'TE VII', werte: [2819.64, 3048.19, 3178.49, 3331.68, 3500.03, 3683.51], jahressonderzahlung: 95 },
+        { id: 'TE VIII', werte: [2733.55, 2937.16, 3068.66, 3203.15, 3354.19, 3524.77], jahressonderzahlung: 95 },
+      ],
+      zulagen: [
+        {
+          id: 'fs1',
+          name: 'Funktionsstufe 1',
+          betraege: { 'TE I': 226.16, 'TE II': 226.16, 'TE III': 226.16, 'TE IV': 226.16, 'TE V': 83.06, 'TE VI': 83.06, 'TE VII': 83.06, 'TE VIII': 83.06 },
+          jahressonderzahlungRelevant: true,
+        },
+        {
+          id: 'fs2',
+          name: 'Funktionsstufe 2',
+          betraege: { 'TE I': 452.31, 'TE II': 452.31, 'TE III': 452.31, 'TE IV': 452.31, 'TE V': 166.11, 'TE VI': 166.11, 'TE VII': 166.11, 'TE VIII': 166.11 },
+          jahressonderzahlungRelevant: true,
+        },
+      ],
+    },
+  ],
+};

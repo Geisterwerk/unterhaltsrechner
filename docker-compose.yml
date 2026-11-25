@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      # node_modules bleibt im Container (keine Windows-Binaries im Projektordner nötig)
+      - node_modules:/app/node_modules
+    command: npm run dev
+
+volumes:
+  node_modules:
