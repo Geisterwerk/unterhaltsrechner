@@ -3,6 +3,10 @@
 React + TypeScript + Tailwind. Bildet das Residenzmodell, das paritätische Wechselmodell und weitere
 unterhaltsberechtigte Kinder aus anderen Beziehungen ab.
 
+**Online nutzen:** <https://geisterwerk.github.io/unterhaltsrechner/>. Jeder Push auf `main` wird nach
+bestandenen Tests automatisch per GitHub Actions veröffentlicht. Die Berechnung läuft vollständig im Browser,
+eingegebene Daten werden nicht übertragen.
+
 > **Hinweis:** Die Berechnung ist eine unverbindliche Orientierung. Sie ersetzt keine familienrechtliche
 > Beratung. Die Werte 2026 wurden am 20.11.2026 mit den amtlichen Quellen abgeglichen (siehe „Datenstand“);
 > Ergebnisse sind vor einer Weiterverwendung fachlich zu prüfen.
