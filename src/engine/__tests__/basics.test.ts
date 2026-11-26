@@ -1,3 +1,4 @@
+import { leitlinienFuer } from '../../config/leitlinien';
 import { describe, expect, it } from 'vitest';
 import { duesseldorferTabelle2026 as cfg, getJahresKonfiguration } from '../../config';
 import { bereinigtesEinkommen } from '../income';
@@ -23,11 +24,11 @@ describe('Tabelle', () => {
 });
 
 describe('Bereinigtes Einkommen', () => {
-  it('Pauschale 5 % ohne Mindest- und Höchstbetrag (Leitlinien 2026)', () => {
+  it('Pauschale 5 % ohne Mindest- und Höchstbetrag (Leitlinien NRW 2026)', () => {
     const d = { berufsbedingtMode: 'pauschal' as const, berufsbedingtKonkret: 0, altersvorsorge: 0, schulden: 0, sonstige: 0, wohnvorteil: 0 };
-    expect(bereinigtesEinkommen(parent('A', 800, { deductions: d }), getJahresKonfiguration(2026)).berufsbedingt).toBe(40);
-    expect(bereinigtesEinkommen(parent('A', 2000, { deductions: d }), getJahresKonfiguration(2026)).berufsbedingt).toBe(100);
-    expect(bereinigtesEinkommen(parent('A', 5000, { deductions: d }), getJahresKonfiguration(2026)).berufsbedingt).toBe(250);
+    expect(bereinigtesEinkommen(parent('A', 800, { deductions: d }), getJahresKonfiguration(2026), leitlinienFuer('nrw')).berufsbedingt).toBe(40);
+    expect(bereinigtesEinkommen(parent('A', 2000, { deductions: d }), getJahresKonfiguration(2026), leitlinienFuer('nrw')).berufsbedingt).toBe(100);
+    expect(bereinigtesEinkommen(parent('A', 5000, { deductions: d }), getJahresKonfiguration(2026), leitlinienFuer('nrw')).berufsbedingt).toBe(250);
   });
 
   it('konkrete Abzüge', () => {

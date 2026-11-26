@@ -83,14 +83,16 @@ describe('Bericht mit Zeitraum', () => {
       aktiv: true,
       von: '2026-01',
       bis: '2026-12',
-      mitGezahlt: true,
-      betragMonatlich: 400,
+      zahlungen: [{ id: 'z', von: '2026-01', bis: '', zahler: 'A' as const, betrag: 400 }],
       aenderungen: [{ id: 'a', ab: '2026-09', elternteil: 'A' as const, betrag: 3500 }],
     };
     const ergebnis = berechneZeitraum(inp, zeitraumEingabeAus(einstellung));
     const m = buildReportModel(inp, result, new Date('2026-11-26T10:00:00'), { einstellung, ergebnis });
     expect(m.zeitraum!.titel).toBe('Zeitraum 01/2026 bis 12/2026');
-    expect(m.zeitraum!.aenderungen).toEqual(['ab 09/2026: Vater 3.500,00 € (netto)']);
+    expect(m.zeitraum!.aenderungen).toEqual([
+      'gezahlt 01/2026 bis Ende: Vater an Mutter 400,00 € monatlich',
+      'ab 09/2026: Einkommen Vater 3.500,00 € (netto)',
+    ]);
     expect(m.zeitraum!.abschnitte.map((a) => a.zeitraum)).toEqual([
       '01/2026–05/2026 (5 Monate)',
       '06/2026–08/2026 (3 Monate)',
@@ -98,8 +100,8 @@ describe('Bericht mit Zeitraum', () => {
     ]);
     expect(m.zeitraum!.summen.map(([k]) => k)).toEqual([
       'Ausgleich zwischen den Eltern gesamt',
-      'Bereits gezahlt von Vater',
-      'Rückstand Vater',
+      'Tatsächlich gezahlt',
+      'Rückstand Vater an Mutter',
     ]);
     const pdf = createReportPdf(m, { compress: false });
     expect(pdf.getNumberOfPages()).toBeGreaterThan(0);

@@ -135,6 +135,24 @@ export function validateInput(input: CalculationInput, jk: Pick<JahresKonfigurat
     checkNonNegative(issues, parent.deductions.schulden, `${f}.schulden`, `${name}: Schulden`);
     checkNonNegative(issues, parent.deductions.sonstige, `${f}.sonstige`, `${name}: Sonstige Abzüge`);
     checkNonNegative(issues, parent.deductions.wohnvorteil ?? 0, `${f}.wohnvorteil`, `${name}: Wohnvorteil`);
+    checkNonNegative(issues, parent.deductions.pkv ?? 0, `${f}.pkv`, `${name}: Private Kranken-/Pflegeversicherung`);
+    if (parent.fiktiv?.aktiv) {
+      checkNonNegative(issues, parent.fiktiv.netto, `${f}.fiktiv`, `${name}: Erzielbares Nettoeinkommen`);
+      if (parent.fiktiv.netto <= 0) {
+        issues.push({
+          severity: 'warning',
+          field: `${f}.fiktiv`,
+          message: `${name}: Fiktives Einkommen ist aktiviert, aber kein erzielbares Nettoeinkommen eingetragen.`,
+        });
+      }
+    }
+    if (parent.incomeMode === 'brutto' && (parent.deductions.pkv ?? 0) > 0) {
+      issues.push({
+        severity: 'warning',
+        field: `${f}.pkv`,
+        message: `${name}: Die Brutto-Netto-Schätzung rechnet mit gesetzlicher Kranken- und Pflegeversicherung – bei privater Versicherung besser das Netto laut Abrechnung eingeben.`,
+      });
+    }
     checkNonNegative(issues, parent.weitereBerechtigte, `${f}.weitereBerechtigte`, `${name}: Weitere Berechtigte`);
     if (parent.deductions.berufsbedingtMode === 'konkret') {
       checkNonNegative(
@@ -144,7 +162,7 @@ export function validateInput(input: CalculationInput, jk: Pick<JahresKonfigurat
         `${name}: Berufsbedingte Aufwendungen`,
       );
     }
-    if (!parent.employed && parent.deductions.berufsbedingtMode !== 'keine') {
+    if (!parent.employed && !parent.fiktiv?.aktiv && parent.deductions.berufsbedingtMode !== 'keine') {
       issues.push({
         severity: 'warning',
         field: `${f}.employed`,
@@ -163,7 +181,7 @@ export function validateInput(input: CalculationInput, jk: Pick<JahresKonfigurat
     // bei Tarifauswahl ergibt sich der Bruttolohn aus der Tabelle, nicht aus dem Eingabefeld
     const incomeValue =
       parent.incomeMode === 'brutto' ? effectiveGross(parent.gross, activeTarife).gross.bruttoMonatlich : parent.netIncome;
-    if (parent.employed && incomeValue === 0) {
+    if (parent.employed && incomeValue === 0 && !parent.fiktiv?.aktiv) {
       issues.push({
         severity: 'warning',
         field: `${f}.netIncome`,
@@ -203,6 +221,7 @@ export function validateInput(input: CalculationInput, jk: Pick<JahresKonfigurat
     const years = checkAge(issues, c.age, input.referenceDate, `children.${i}.age`, cl);
     checkNonNegative(issues, c.ownIncome, `children.${i}.ownIncome`, `${cl}: Eigenes Einkommen`);
     checkNonNegative(issues, c.kinderzuschlag ?? 0, `children.${i}.kinderzuschlag`, `${cl}: Kinderzuschlag`);
+    checkNonNegative(issues, c.krankenversicherung ?? 0, `children.${i}.krankenversicherung`, `${cl}: Krankenversicherung`);
     checkNonNegative(issues, c.wechselMehrkosten, `children.${i}.wechselMehrkosten`, `${cl}: Mehrkosten`);
     for (const p of ['A', 'B'] as const) {
       checkNonNegative(issues, c.wechselWohnkosten?.[p] ?? 0, `children.${i}.wechselWohnkosten.${p}`, `${cl}: Wohnkosten`);

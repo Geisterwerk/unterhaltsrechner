@@ -99,6 +99,8 @@ export function input(
       haushaltskinderEinbeziehen: true,
       wechselNaturalunterhaltAbzug: true,
       wechselStufung: false,
+      // Tests rechnen mit den Leitlinien NRW (die übrigen Leitlinien werden eigens getestet)
+      leitlinien: 'nrw',
     },
   };
 }

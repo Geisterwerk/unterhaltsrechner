@@ -20,6 +20,44 @@ export const CHANGELOG_ART_LABEL: Record<ChangelogArt, string> = {
 
 export const CHANGELOG: ChangelogEintrag[] = [
   {
+    version: '1.6.0',
+    datum: '2026-11-26',
+    aenderungen: [
+      {
+        art: 'neu',
+        text: 'Leitlinien wählbar: Berlin (Kammergericht), NRW, Süddeutsche oder Niedersachsen – mit den jeweiligen Regeln zur 5 %-Pauschale, zum Ausbildungsaufwand und zur Altersvorsorge.',
+      },
+      {
+        art: 'geaendert',
+        text: 'Standard sind jetzt die Leitlinien des Kammergerichts Berlin (bisher wurde nach den Leitlinien NRW gerechnet). Gespeicherte Eingaben älterer Versionen werden mit den Berliner Leitlinien geladen; bei Bedarf oben umstellen.',
+      },
+      {
+        art: 'neu',
+        text: 'Fiktives Einkommen bei Verletzung der Erwerbsobliegenheit: erzielbares Netto statt des tatsächlichen Einkommens.',
+      },
+      {
+        art: 'neu',
+        text: 'Private Kranken- und Pflegeversicherung für Eltern (Abzug vom Einkommen) und Kinder (zusätzlich zum Tabellenunterhalt bzw. als Teil des Bedarfs).',
+      },
+      {
+        art: 'neu',
+        text: 'Zeitraum: tatsächliche Zahlungen mit wechselnden Beträgen (auch Monate ohne Zahlung) und Betreuungswechsel ab einem Monat.',
+      },
+      {
+        art: 'neu',
+        text: 'Barrierefreiheit: Eingabefelder sind für Screenreader beschriftet, Umschalter per Pfeiltasten bedienbar, sichtbarer Tastaturfokus; automatische Prüfung nach WCAG 2.1.',
+      },
+      {
+        art: 'korrigiert',
+        text: 'Hinweis zur 5 %-Pauschale nach Leitlinien NRW: sie gilt in der Regel nur bei fiktivem Erwerbseinkommen (nicht „bei Anhaltspunkten“).',
+      },
+      {
+        art: 'geaendert',
+        text: 'Zeitraum: Der feste Monatsbetrag „bereits gezahlt“ ist durch eine Liste tatsächlicher Zahlungen ersetzt; ältere Speicherdateien werden automatisch umgewandelt.',
+      },
+    ],
+  },
+  {
     version: '1.5.0',
     datum: '2026-11-26',
     aenderungen: [

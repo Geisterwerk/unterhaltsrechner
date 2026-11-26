@@ -1,3 +1,4 @@
+import { leitlinienFuer } from '../config/leitlinien';
 import { getJahresKonfiguration } from '../config';
 import { fmt } from '../engine';
 import { resolveTarif } from '../engine/tarif';
@@ -66,28 +67,40 @@ export interface ReportModel {
 export function zeitraumBericht(
   z: { einstellung: ZeitraumEinstellung; ergebnis: ZeitraumErgebnis },
   parents: CalculationInput['parents'],
+  kinderListe: CalculationInput['children'] = [],
 ): NonNullable<ReportModel['zeitraum']> {
   const { einstellung: e, ergebnis: r } = z;
+  const kinder = new Map(kinderListe.map((c) => [c.id, c.label]));
   const name = (p: Payee | null) => (p ? payeeText(p, parents) : '');
   const richtung = (netto: number, betrag: number) =>
     netto === 0 ? '–' : `${parents[netto > 0 ? 'A' : 'B'].label} an ${parents[netto > 0 ? 'B' : 'A'].label} ${fmt(betrag)}`;
   const summen: KeyValue[] = [['Ausgleich zwischen den Eltern gesamt', richtung(r.summeNettoAB, Math.abs(r.summeNettoAB))]];
-  if (e.mitGezahlt) summen.push([`Bereits gezahlt von ${parents[e.zahler].label}`, `− ${fmt(r.gezahltGesamt)}`]);
-  if (r.rueckstand) {
-    summen.push([
-      e.mitGezahlt
-        ? `${r.rueckstand.betrag >= 0 ? 'Rückstand' : 'Überzahlung'} ${parents[r.rueckstand.zahler].label}`
-        : `Offen, wenn nichts gezahlt wurde (${parents[r.rueckstand.zahler].label})`,
-      fmt(Math.abs(r.rueckstand.betrag)),
-    ]);
-  }
+  if (r.zahlungenErfasst) summen.push(['Tatsächlich gezahlt', richtung(r.summeGezahltAB, Math.abs(r.summeGezahltAB))]);
+  if (r.rueckstand) summen.push([rueckstandText(r.rueckstand, parents), fmt(r.rueckstand.betrag)]);
   return {
     titel: `Zeitraum ${monatText(e.von)} bis ${monatText(e.bis)}`,
-    aenderungen: [...e.aenderungen]
+    aenderungen: [
+      ...e.aenderungen.map((a) => ({
+        ab: a.ab,
+        text: `ab ${monatText(a.ab)}: Einkommen ${parents[a.elternteil].label} ${fmt(a.betrag)} (${
+          parents[a.elternteil].incomeMode === 'netto' ? 'netto' : 'brutto'
+        })`,
+      })),
+      ...e.betreuung.map((b) => ({
+        ab: b.ab,
+        text: `ab ${monatText(b.ab)}: ${kinder.get(b.childId) ?? 'Kind'} ${careText(b.care, parents)}`,
+      })),
+      ...e.zahlungen
+        .filter((zl) => zl.betrag > 0)
+        .map((zl) => ({
+          ab: zl.von,
+          text: `gezahlt ${monatText(zl.von)}${zl.bis ? `–${monatText(zl.bis)}` : ' bis Ende'}: ${parents[zl.zahler].label} an ${
+            parents[zl.zahler === 'A' ? 'B' : 'A'].label
+          } ${fmt(zl.betrag)} monatlich`,
+        })),
+    ]
       .sort((a, b) => a.ab.localeCompare(b.ab))
-      .map((a) => `ab ${monatText(a.ab)}: ${parents[a.elternteil].label} ${fmt(a.betrag)} (${
-        parents[a.elternteil].incomeMode === 'netto' ? 'netto' : 'brutto'
-      })`),
+      .map((x) => x.text),
     abschnitte: r.abschnitte.map((a) => ({
       zeitraum: `${monatText(a.von)}${a.bis !== a.von ? `–${monatText(a.bis)}` : ''} (${a.monate} ${a.monate === 1 ? 'Monat' : 'Monate'})`,
       monatlich: [
@@ -98,14 +111,29 @@ export function zeitraumBericht(
           ? ['keine Zahlung']
           : a.zahlungen.map(
               (zl) =>
-                `${zl.label}${zl.stage !== null ? ` (${AGE_STAGE_LABELS[zl.stage]})` : ''}: ${name(zl.payer)} an ${name(zl.payee)} ${fmt(zl.amount)}`,
+                `${zl.label}${zl.stage !== null ? ` (${AGE_STAGE_LABELS[zl.stage]}${zl.care ? `, ${careText(zl.care, parents)}` : ''})` : ''}: ${name(
+                  zl.payer,
+                )} an ${name(zl.payee)} ${fmt(zl.amount)}`,
             )),
       ].join('\n'),
-      summe: richtung(a.nettoAB, Math.abs(a.nettoAB) * a.monate),
+      summe: [
+        richtung(a.nettoAB, Math.abs(a.nettoAB) * a.monate),
+        ...(r.zahlungenErfasst ? [`gezahlt: ${richtung(a.gezahltAB, Math.abs(a.gezahltAB) * a.monate)}`] : []),
+      ].join('\n'),
     })),
     summen,
     hinweise: r.hinweise,
   };
+}
+
+/** Beschriftung für Rückstand, Überzahlung oder offenen Betrag */
+export function rueckstandText(r: NonNullable<ZeitraumErgebnis['rueckstand']>, parents: CalculationInput['parents']): string {
+  const p = parents[r.zahler].label;
+  return r.art === 'offen'
+    ? `Offen, wenn nichts gezahlt wurde (${p} an ${parents[r.empfaenger].label})`
+    : r.art === 'rueckstand'
+      ? `Rückstand ${p} an ${parents[r.empfaenger].label}`
+      : `Überzahlung durch ${p}`;
 }
 
 export const RECHTLICHER_HINWEIS =
@@ -142,6 +170,7 @@ function parentSection(p: ParentId, input: CalculationInput, jk: JahresKonfigura
   const parent = input.parents[p];
   const z: KeyValue[] = [];
   z.push(['Erwerbsstatus', parent.employed ? 'erwerbstätig' : 'nicht erwerbstätig']);
+  if (parent.fiktiv?.aktiv) z.push(['Fiktives (erzielbares) Nettoeinkommen', fmt(parent.fiktiv.netto)]);
   if (parent.incomeMode === 'netto') {
     z.push(['Nettoeinkommen (monatlich)', fmt(parent.netIncome)]);
   } else {
@@ -186,6 +215,7 @@ function parentSection(p: ParentId, input: CalculationInput, jk: JahresKonfigura
     d.berufsbedingtMode === 'pauschal' ? '5 %-Pauschale' : d.berufsbedingtMode === 'konkret' ? fmt(d.berufsbedingtKonkret) : 'keine',
   ]);
   if ((d.wohnvorteil ?? 0) > 0) z.push(['Wohnvorteil', fmt(d.wohnvorteil)]);
+  if ((d.pkv ?? 0) > 0) z.push(['Private Kranken-/Pflegeversicherung', fmt(d.pkv ?? 0)]);
   if (d.altersvorsorge > 0) z.push(['Altersvorsorge (angegeben)', fmt(d.altersvorsorge)]);
   if (d.schulden > 0) z.push(['Berücksichtigungsfähige Schulden', fmt(d.schulden)]);
   if (d.sonstige > 0) z.push(['Sonstige Abzüge', fmt(d.sonstige)]);
@@ -264,6 +294,7 @@ export function buildReportModel(
           : '',
         c.care === 'wechsel' && c.wechselMehrkosten > 0 ? `Mehrkosten ${fmt(c.wechselMehrkosten)}` : '',
         (c.kinderzuschlag ?? 0) > 0 ? `Kinderzuschlag ${fmt(c.kinderzuschlag)}` : '',
+        (c.krankenversicherung ?? 0) > 0 ? `Kranken-/Pflegeversicherung ${fmt(c.krankenversicherung ?? 0)}` : '',
       ]
         .filter(Boolean)
         .join(', '),
@@ -276,6 +307,7 @@ export function buildReportModel(
     zeilen: [
       ['Berechnungsjahr', `${jk.jahr}${jk.status === 'vorlaeufig' ? ' (vorläufig)' : ''}`],
       ['Stichtag (Altersberechnung)', datum(input.referenceDate)],
+      ['Leitlinien', leitlinienFuer(o.leitlinien).name],
       ['Selbst betreute Kinder beim Zahlenden berücksichtigen', o.haushaltskinderEinbeziehen ? 'ja' : 'nein'],
       ['Wechselmodell: weitere Kinder im Haushalt vorweg abziehen', o.wechselNaturalunterhaltAbzug ? 'ja' : 'nein'],
       ['Wechselmodell: Zu-/Herabstufung nach Kinderzahl', o.wechselStufung ? 'ja' : 'nein'],
@@ -305,6 +337,7 @@ export function buildReportModel(
     `${activeTable.name} (gültig ab ${datum(activeTable.validFrom)}) – Kindergeld ${fmt(activeTable.kindergeld)}, Selbstbehalt notwendig ${fmt(
       activeTable.selbstbehalt.notwendigErwerbstaetig,
     )} / ${fmt(activeTable.selbstbehalt.notwendigNichtErwerbstaetig)}, angemessen ${fmt(activeTable.selbstbehalt.angemessen)}`,
+    `${leitlinienFuer(input.options.leitlinien).name}, Stand 01.01.2026: ${leitlinienFuer(input.options.leitlinien).quelle}`,
     ...(nutztBrutto ? [`${activeLohnsteuer.name}: ${activeLohnsteuer.sourceNote}`] : []),
     ...(nutztTarif ? [activeTarife.sourceNote] : []),
     activeTable.sourceNote,
@@ -339,6 +372,6 @@ export function buildReportModel(
     eingaben: [parentSection('A', input, jk), parentSection('B', input, jk), kinder, optionen],
     rechenweg,
     grundlagen,
-    ...(zeitraum && result.ok ? { zeitraum: zeitraumBericht(zeitraum, parents) } : {}),
+    ...(zeitraum && result.ok ? { zeitraum: zeitraumBericht(zeitraum, parents, input.children) } : {}),
   };
 }

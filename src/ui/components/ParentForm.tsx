@@ -2,7 +2,7 @@ import type { OtherChildInput, ParentId, ParentInput } from '../../types';
 import { newOtherChild } from '../defaults';
 import { infoTexte } from '../infoTexte';
 import { useJahr } from '../JahrContext';
-import { AgeField, Field, LabeledBlock, MoneyInput, NameInput } from './fields';
+import { AgeField, Field, LabeledBlock, MoneyInput, NameInput, radioTasten, Toggle } from './fields';
 import { GrossIncomeFields } from './GrossIncomeFields';
 
 interface Props {
@@ -70,6 +70,7 @@ export function ParentForm({ id, value, onChange, errorFor, roles, referenceDate
                 type="button"
                 role="radio"
                 aria-checked={value.incomeMode === mode}
+                {...radioTasten(['netto', 'brutto'] as const, value.incomeMode, (v) => set('incomeMode', v))(mode)}
                 onClick={() => set('incomeMode', mode)}
                 className={`rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
                   value.incomeMode === mode ? 'bg-white text-petrol-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
@@ -106,6 +107,26 @@ export function ParentForm({ id, value, onChange, errorFor, roles, referenceDate
             <option value="nein">nicht erwerbstätig</option>
           </select>
         </Field>
+        <div className="sm:col-span-2">
+          <Toggle
+            checked={!!value.fiktiv?.aktiv}
+            onChange={(v) => set('fiktiv', { aktiv: v, netto: value.fiktiv?.netto ?? 0 })}
+            label="Fiktives Einkommen ansetzen (Erwerbsobliegenheit verletzt)"
+            hint="erzielbares Netto statt des tatsächlichen Einkommens"
+            info={info.fiktiv}
+          />
+        </div>
+        {value.fiktiv?.aktiv && (
+          <Field
+            label="Erzielbares Nettoeinkommen (monatlich)"
+            info={info.fiktivNetto}
+            hint="gilt, wenn höher als das tatsächliche; Elternteil gilt als erwerbstätig"
+            error={errorFor(`${f}.fiktiv`)}
+            className="sm:col-span-2"
+          >
+            <MoneyInput value={value.fiktiv.netto} onChange={(v) => set('fiktiv', { aktiv: true, netto: v ?? 0 })} />
+          </Field>
+        )}
         <Field label="Berufsbedingte Aufwendungen" info={info.berufsbedingt}>
           <select
             className="input"
@@ -136,6 +157,14 @@ export function ParentForm({ id, value, onChange, errorFor, roles, referenceDate
         </Field>
         <Field label="Sonstige Abzüge" error={errorFor(`${f}.sonstige`)} info={info.sonstigeAbzuege}>
           <MoneyInput value={value.deductions.sonstige} onChange={(v) => setDed('sonstige', v ?? 0)} />
+        </Field>
+        <Field
+          label="Private Kranken-/Pflegeversicherung"
+          hint="eigener Monatsbeitrag, falls privat versichert"
+          error={errorFor(`${f}.pkv`)}
+          info={info.pkvEltern}
+        >
+          <MoneyInput value={value.deductions.pkv ?? 0} onChange={(v) => setDed('pkv', v ?? 0)} />
         </Field>
         <Field
           label="Wohnvorteil (mietfreies Wohnen)"

@@ -99,17 +99,30 @@ test('Zeitraum mit Altersstufenwechsel und Rückstand', async ({ page }) => {
   await expect(panel.getByText('01/2026–05/2026')).toBeVisible();
   await expect(panel.getByText('06/2026–12/2026')).toBeVisible();
 
-  await panel.getByText('Bereits gezahlte Beträge abziehen').click();
-  await panel.locator('div', { has: page.getByText('Gezahlt je Monat', { exact: true }) }).getByRole('spinbutton').last().fill('900');
-  await expect(panel.getByText('Rückstand Elternteil A', { exact: true })).toBeVisible();
+  // tatsächliche Zahlungen: Januar–März 900 €, ab Mai 900 € (April ohne Zahlung)
+  await panel.getByRole('button', { name: '+ Zahlung' }).click();
+  await panel.getByLabel('Zahlung 1: bis Monat').fill('2026-03');
+  await panel.getByRole('spinbutton', { name: 'Je Monat' }).first().fill('900');
+  await panel.getByRole('button', { name: '+ Zahlung' }).click();
+  await panel.getByLabel('Zahlung 2: von Monat').fill('2026-05');
+  await panel.getByRole('spinbutton', { name: 'Je Monat' }).nth(1).fill('900');
+  await expect(panel.getByText('Rückstand Elternteil A an Elternteil B', { exact: true })).toBeVisible();
+  await expect(panel.getByRole('cell', { name: /^04\/2026\s*1 Monat$/ })).toBeVisible();
+
+  // Betreuungswechsel: Kind 1 ab Oktober im Wechselmodell
+  await panel.getByRole('button', { name: '+ Betreuungswechsel' }).click();
+  await panel.getByLabel('Betreuungswechsel 1: ab Monat').fill('2026-10');
+  await expect(panel.getByText(/Kind 1 \(6–11 Jahre\): Elternteil . → Elternteil . .*€/).first()).toBeVisible();
 
   // Einkommensänderung ab September
   await panel.getByRole('button', { name: '+ Einkommensänderung' }).click();
   await panel.getByLabel('Einkommensänderung 1: ab Monat').fill('2026-09');
   const neu = panel.getByText('Neues Nettoeinkommen', { exact: true }).locator('xpath=ancestor::div[2]');
   await neu.getByRole('spinbutton').fill('4000');
-  await expect(panel.getByText('09/2026–12/2026')).toBeVisible();
-  await expect(panel.getByText('Nettoeinkommen Elternteil A: 4.000,00 €')).toBeVisible();
+  // Einkommensänderung ab 09 und Betreuungswechsel ab 10 → eigene Abschnitte
+  await expect(panel.getByRole('cell', { name: /^09\/2026/ })).toBeVisible();
+  await expect(panel.getByRole('cell', { name: /^10\/2026–12\/2026/ })).toBeVisible();
+  await expect(panel.getByText('Nettoeinkommen Elternteil A: 4.000,00 €').first()).toBeVisible();
 
   // PDF enthält den Zeitraum
   const [pdf] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: /PDF/ }).first().click()]);
@@ -130,5 +143,23 @@ test('Kinderzuschlag senkt den Zahlbetrag', async ({ page }) => {
   const feld = kinder.getByText('Kinderzuschlag (monatlich)', { exact: true }).first().locator('xpath=ancestor::div[2]');
   await feld.getByRole('spinbutton').fill('100');
   await expect(page.locator('body')).toContainText('− Kinderzuschlag 100,00 €');
+  expect(await page.locator('body').innerText()).not.toBe(vorher);
+});
+
+test('Leitlinien, fiktives Einkommen und private Krankenversicherung', async ({ page }) => {
+  const vorher = await page.locator('body').innerText();
+  await page.getByLabel('Leitlinien', { exact: true }).selectOption('nds');
+  const elternA = page.locator('section', { has: page.locator('#parent-name-A') });
+  await elternA.getByLabel('Berufsbedingte Aufwendungen', { exact: true }).selectOption('pauschal');
+  await expect(page.getByText(/höchstens 150 €/).first()).toBeVisible();
+
+  const elternB = page.locator('section', { has: page.locator('#parent-name-B') });
+  await elternB.getByText('Fiktives Einkommen ansetzen (Erwerbsobliegenheit verletzt)').click();
+  await elternB.getByRole('spinbutton', { name: 'Erzielbares Nettoeinkommen (monatlich)' }).fill('2400');
+  await expect(page.getByText('Elternteil B: fiktives Nettoeinkommen')).toBeVisible();
+
+  const kinder = page.locator('section', { has: page.getByRole('heading', { name: 'Gemeinsame Kinder' }) });
+  await kinder.getByRole('spinbutton', { name: 'Kranken-/Pflegeversicherung (privat)' }).first().fill('120');
+  await expect(page.getByText(/inkl\. Kranken-\/Pflegeversicherung 120,00 €/).first()).toBeVisible();
   expect(await page.locator('body').innerText()).not.toBe(vorher);
 });

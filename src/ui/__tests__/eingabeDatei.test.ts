@@ -53,9 +53,9 @@ describe('Eingaben als Datei', () => {
     const zeitraum = {
       ...zeitraumStandard(new Date('2026-11-26')),
       aktiv: true,
-      mitGezahlt: true,
-      betragMonatlich: 300,
+      zahlungen: [{ id: 'z1', von: '2026-01', bis: '2026-03', zahler: 'A' as const, betrag: 300 }],
       aenderungen: [{ id: 'a1', ab: '2026-05', elternteil: 'B' as const, betrag: 2100 }],
+      betreuung: [{ id: 'b1', ab: '2026-07', childId: 'kind-x', care: 'wechsel' as const }],
     };
     const g = eingabenAusJson(eingabenAlsJson(defaultInput(), [], new Date(), zeitraum));
     expect(g.zeitraum).toEqual(zeitraum);
@@ -67,5 +67,20 @@ describe('Eingaben als Datei', () => {
     const k = eingabenAusJson(JSON.stringify(kaputt));
     expect(k.zeitraum!.von).toMatch(/^\d{4}-\d{2}$/);
     expect(k.zeitraum!.aenderungen).toHaveLength(1);
+  });
+
+  it('wandelt den festen Monatsbetrag älterer Dateien (bis 1.5.0) in eine Zahlung um', () => {
+    const alt = JSON.parse(eingabenAlsJson(defaultInput(), []));
+    alt.zeitraum = { aktiv: true, von: '2026-01', bis: '2026-06', mitGezahlt: true, zahler: 'B', betragMonatlich: 250, aenderungen: [] };
+    const g = eingabenAusJson(JSON.stringify(alt));
+    expect(g.zeitraum!.zahlungen).toEqual([{ id: expect.any(String), von: '2026-01', bis: '', zahler: 'B', betrag: 250 }]);
+    expect(g.zeitraum!.betreuung).toEqual([]);
+  });
+
+  it('Standard-Leitlinien sind Berlin – auch für ältere Dateien ohne Angabe', () => {
+    expect(defaultInput().options.leitlinien).toBe('berlin');
+    const alt = JSON.parse(eingabenAlsJson(defaultInput(), []));
+    delete alt.input.options.leitlinien;
+    expect(eingabenAusJson(JSON.stringify(alt)).input.options.leitlinien).toBe('berlin');
   });
 });

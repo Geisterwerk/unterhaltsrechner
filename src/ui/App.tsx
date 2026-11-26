@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { getJahresKonfiguration, JAHRE } from '../config';
+import { LEITLINIEN, LEITLINIEN_IDS, STANDARD_LEITLINIEN, type LeitlinienId } from '../config/leitlinien';
 import { calculate } from '../engine';
 import type { CalculationInput, JahresKonfiguration, ParentId } from '../types';
 import { ChangelogButton } from './components/ChangelogDialog';
@@ -130,6 +131,24 @@ export function App() {
                   value={input.referenceDate}
                   onChange={(e) => set('referenceDate', e.target.value)}
                 />
+              </Field>
+              <Field
+                label="Leitlinien"
+                info={info.leitlinien}
+                hint="Oberlandesgericht am Wohnsitz des Kindes"
+                className="sm:col-span-2"
+              >
+                <select
+                  className="input"
+                  value={input.options.leitlinien ?? STANDARD_LEITLINIEN}
+                  onChange={(e) => setOption('leitlinien', e.target.value as LeitlinienId)}
+                >
+                  {LEITLINIEN_IDS.map((id) => (
+                    <option key={id} value={id}>
+                      {LEITLINIEN[id].name}
+                    </option>
+                  ))}
+                </select>
               </Field>
             </div>
 

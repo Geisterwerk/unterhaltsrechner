@@ -221,32 +221,46 @@ function StepView({ id, title, lines }: { id: number; title: string; lines: Step
         <span className="text-slate-400">{open ? '−' : '+'}</span>
       </button>
       {open && (
-        <dl className="border-t border-slate-100 px-3 py-2 text-sm">
-          {lines.map((l, i) =>
-            l.heading ? (
-              <div
-                key={i}
-                className="-mx-3 mb-1 mt-2 border-y border-slate-100 bg-slate-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500 first:mt-0"
-              >
-                {l.label}
-              </div>
-            ) : (
-            <div
-              key={i}
-              className={`flex flex-col gap-0.5 py-1 sm:flex-row sm:justify-between sm:gap-4 ${
-                l.emphasis ? 'font-semibold text-slate-900' : 'text-slate-700'
-              }`}
-            >
-              <dt className="whitespace-pre-wrap">{l.label}</dt>
-              <dd className="text-left tabular-nums sm:text-right">
-                {l.value === undefined ? '' : l.money && typeof l.value === 'number' ? fmt(l.value) : String(l.value)}
-                {l.note && <span className="block text-xs font-normal text-slate-500">{l.note}</span>}
-              </dd>
+        <div className="border-t border-slate-100 px-3 py-2 text-sm">
+          {gruppieren(lines).map((g, gi) => (
+            <div key={gi}>
+              {g.ueberschrift && (
+                <h4 className="-mx-3 mb-1 mt-2 border-y border-slate-100 bg-slate-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  {g.ueberschrift}
+                </h4>
+              )}
+              {g.zeilen.length > 0 && (
+                <dl>
+                  {g.zeilen.map((l, i) => (
+                    <div
+                      key={i}
+                      className={`flex flex-col gap-0.5 py-1 sm:flex-row sm:justify-between sm:gap-4 ${
+                        l.emphasis ? 'font-semibold text-slate-900' : 'text-slate-700'
+                      }`}
+                    >
+                      <dt className="whitespace-pre-wrap">{l.label}</dt>
+                      <dd className="text-left tabular-nums sm:text-right">
+                        {l.value === undefined ? '' : l.money && typeof l.value === 'number' ? fmt(l.value) : String(l.value)}
+                        {l.note && <span className="block text-xs font-normal text-slate-500">{l.note}</span>}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
             </div>
-            ),
-          )}
-        </dl>
+          ))}
+        </div>
       )}
     </div>
   );
+}
+
+/** Rechenweg-Zeilen an Zwischenüberschriften in Gruppen teilen (je Gruppe eine eigene Definitionsliste) */
+function gruppieren(lines: StepLine[]): { ueberschrift?: string; zeilen: StepLine[] }[] {
+  const gruppen: { ueberschrift?: string; zeilen: StepLine[] }[] = [{ zeilen: [] }];
+  for (const l of lines) {
+    if (l.heading) gruppen.push({ ueberschrift: l.label, zeilen: [] });
+    else gruppen[gruppen.length - 1].zeilen.push(l);
+  }
+  return gruppen.filter((g) => g.ueberschrift || g.zeilen.length > 0);
 }

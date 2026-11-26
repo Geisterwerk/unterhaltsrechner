@@ -56,13 +56,19 @@ export function infoTexte(jk: JahresKonfiguration) {
           nachzuweisen.
         </P>
         <P>
-          <strong>Pauschale</strong> ({Math.round(t.pauschale.rate * 100)} % des Nettoeinkommens): nach den Leitlinien NRW nur bei
-          fiktivem Einkommen, nach den Süddeutschen Leitlinien bei entsprechenden Anhaltspunkten. Pauschale und Einzelkosten
-          werden nicht kombiniert.
+          <strong>Pauschale</strong> (5 % des Nettoeinkommens) – je nach gewählten Leitlinien:
         </P>
+        <ul className="list-inside list-disc space-y-0.5">
+          <li>NRW (10.2.1): in der Regel nur bei fiktivem Erwerbseinkommen, sonst Kosten konkret darlegen; keine Grenzen.</li>
+          <li>Süddeutsche (10.2.1): bei entsprechenden Anhaltspunkten, nur für nichtselbständige Arbeit; keine Grenzen.</li>
+          <li>Niedersachsen (10.2.1): für nichtselbständige Arbeit, bei Vollzeit mindestens 50 €, höchstens 150 €.</li>
+          <li>Berlin (10.2.1): für nichtselbständige Arbeit ohne Nachweis, mindestens 50 €, höchstens 150 €.</li>
+        </ul>
+        <P>Pauschale und Einzelkosten werden nicht kombiniert.</P>
         <P>
-          <strong>Fahrtkosten</strong> (Leitlinien NRW 10.2.2): vorrangig Kosten öffentlicher Verkehrsmittel; mit dem Auto 0,42 € je
-          <em> gefahrenem</em> Kilometer, ab dem 31. Entfernungskilometer meist 0,28 €. Daneben keine weiteren Autokosten.
+          <strong>Fahrtkosten</strong> (10.2.2): vorrangig Kosten öffentlicher Verkehrsmittel; mit dem Auto 0,42 € je
+          <em> gefahrenem</em> Kilometer, für längere Strecken meist 0,28 € (NRW ab dem 31. Entfernungskilometer, Süddeutsche ab
+          etwa 30 km, Niedersachsen ab dem 61. km der täglichen Gesamtstrecke). Daneben keine weiteren Autokosten.
         </P>
       </>
     ),
@@ -91,6 +97,83 @@ export function infoTexte(jk: JahresKonfiguration) {
         <P>Monatliche Kreditraten, die berücksichtigt werden können – vor allem Schulden, die schon während des Zusammenlebens bestanden oder unvermeidbar waren.</P>
         <P>Gegenüber minderjährigen Kindern werden Schulden nur eingeschränkt anerkannt (Abwägung im Einzelfall).</P>
       </>
+    ),
+    leitlinien: (
+      <>
+        <P>
+          Die Oberlandesgerichte haben eigene Leitlinien, die die Düsseldorfer Tabelle ergänzen. Maßgeblich sind in der Regel
+          die Leitlinien des Oberlandesgerichts, in dessen Bezirk das Kind wohnt. Tabellenbeträge und Selbstbehalte sind
+          überall gleich.
+        </P>
+        <P>Der Rechner berücksichtigt diese Unterschiede (Stand 01.01.2026):</P>
+        <ul className="list-inside list-disc space-y-0.5">
+          <li>5 %-Pauschale für berufsbedingte Aufwendungen: Voraussetzungen und Mindest-/Höchstbetrag (Niedersachsen und Berlin 50–150 €)</li>
+          <li>Ausbildungsaufwand des Kindes (100 €): in NRW nur, wenn das Kind bei einem Elternteil wohnt; in Berlin keine Pauschale, nur nachgewiesene Kosten</li>
+          <li>Altersvorsorge: NRW, Niedersachsen und Berlin 4 % des Bruttos zusätzlich, Süddeutsche insgesamt 23 % einschließlich gesetzlicher Rentenversicherung</li>
+          <li>Bei fiktivem Einkommen setzt der Rechner die Pauschale nur nach den Leitlinien NRW automatisch an.</li>
+        </ul>
+        <P>
+          NRW: OLG Düsseldorf, Hamm, Köln · Süddeutsche: OLG Bamberg, Karlsruhe, München, Nürnberg, Stuttgart, Zweibrücken ·
+          Niedersachsen: OLG Braunschweig, Celle, Oldenburg · Berlin: Kammergericht. Andere Bezirke (z. B. Brandenburg,
+          Hamburg, Frankfurt) haben eigene Leitlinien, die hier nicht abgebildet sind.
+        </P>
+      </>
+    ),
+    fiktiv: (
+      <>
+        <P>
+          Wer gegenüber minderjährigen Kindern zu wenig verdient, weil er sich nicht ausreichend um Arbeit bemüht, muss sich ein
+          erzielbares Einkommen anrechnen lassen (gesteigerte Erwerbsobliegenheit, § 1603 Abs. 2 BGB; Leitlinien Ziff. 9).
+          Voraussetzung ist eine reale Chance, eine solche Stelle zu finden.
+        </P>
+        <P>
+          Das erzielbare Netto ersetzt dann ein geringeres tatsächliches Einkommen; der Elternteil gilt als erwerbstätig
+          (Selbstbehalt {eur(t.selbstbehalt.notwendigErwerbstaetig)}). Nach den Leitlinien NRW wird die 5 %-Pauschale gerade bei fiktivem
+          Einkommen angesetzt.
+        </P>
+      </>
+    ),
+    fiktivNetto: (
+      <P>
+        Monatliches Nettoeinkommen, das bei zumutbarer Vollzeitarbeit realistisch erzielbar wäre – Ausbildung, Berufserfahrung,
+        Alter und Arbeitsmarkt berücksichtigen. Fehlt eine besondere Qualifikation, setzen Gerichte häufig eine Vollzeitstelle zum
+        gesetzlichen Mindestlohn an (BGH, Beschluss vom 26.03.2025 – XII ZB 388/24: 176 Stunden im Monat). Den Bruttolohn dafür
+        mit der Brutto-Eingabe in ein Netto umrechnen und hier eintragen.
+      </P>
+    ),
+    pkvEltern: (
+      <>
+        <P>
+          Nur für privat Versicherte: der monatliche Beitrag zur eigenen Kranken- und Pflegeversicherung. Angemessene Beiträge
+          werden vom Einkommen abgezogen (Leitlinien 10.1). Beiträge für Zusatzversicherungen gehören nicht dazu, solange der
+          Mindestunterhalt der Kinder nicht gedeckt ist (BGH XII ZR 158/10).
+        </P>
+        <P>
+          Zahlt der Arbeitgeber einen Zuschuss mit dem Gehalt aus, ist dieser im Netto enthalten – dann den vollen Beitrag
+          eintragen. Die Brutto-Netto-Schätzung rechnet mit gesetzlicher Versicherung; privat Versicherte geben besser das Netto
+          laut Abrechnung ein.
+        </P>
+      </>
+    ),
+    kvKind: (
+      <>
+        <P>
+          Nur wenn das Kind nicht beitragsfrei familienversichert ist (z. B. privat versichert): der monatliche Beitrag zur
+          Kranken- und Pflegeversicherung, bei Beihilfe nur der verbleibende Teil. Er ist im Tabellenbetrag nicht enthalten
+          (Düsseldorfer Tabelle Anm. A. V).
+        </P>
+        <P>
+          Lebt das minderjährige Kind bei einem Elternteil, trägt der andere den Beitrag zusätzlich zum Tabellenunterhalt; sein
+          Einkommen wird vorher um den Beitrag bereinigt (Leitlinien NRW 11.1; BGH XII ZB 338/17). Im Wechselmodell und bei
+          volljährigen Kindern erhöht der Beitrag den Bedarf und wird nach Haftungsquote verteilt.
+        </P>
+      </>
+    ),
+    kvZahler: (
+      <P>
+        Wer den Beitrag an die Versicherung überweist. Im Wechselmodell zählt die Zahlung als Leistung in natura dieses
+        Elternteils und wird beim Ausgleich angerechnet.
+      </P>
     ),
     wohnvorteil: (
       <>
@@ -233,8 +316,9 @@ export function infoTexte(jk: JahresKonfiguration) {
     ),
     eigenesEinkommen: (
       <P>
-        Monatliches Netto-Einkommen des Kindes, z. B. Ausbildungsvergütung. Wohnt das Kind bei einem Elternteil, werden
-        {' '}{eur(t.ausbildungsbedingterMehrbedarf)} Ausbildungsaufwand abgezogen (bei eigenem Haushalt im festen Bedarf enthalten);
+        Monatliches Netto-Einkommen des Kindes, z. B. Ausbildungsvergütung. Davon werden pauschal
+        {' '}{eur(t.ausbildungsbedingterMehrbedarf)} Ausbildungsaufwand abgezogen – nach den Leitlinien NRW nur, wenn das Kind bei einem
+        Elternteil wohnt; nach den Berliner Leitlinien gar nicht (nur nachgewiesene Kosten, hier vorher abziehen);
         bei Minderjährigen wird der Rest zur Hälfte angerechnet. Kindergeld nicht eintragen.
       </P>
     ),
@@ -247,8 +331,8 @@ export function infoTexte(jk: JahresKonfiguration) {
           „Einkommensänderungen“ den neuen Betrag ab dem jeweiligen Monat erfassen; alle übrigen Eingaben bleiben gleich.
         </P>
         <P>
-          Der Rückstand ist die Summe der monatlichen Ausgleichsbeträge zwischen den Eltern abzüglich der bereits gezahlten
-          Beträge. Einmaliger Sonderbedarf und Zahlungen direkt an volljährige Kinder sind darin nicht enthalten.
+          Der Rückstand ist die Summe der monatlichen Ausgleichsbeträge zwischen den Eltern abzüglich der tatsächlich
+          gezahlten Beträge. Einmaliger Sonderbedarf und Zahlungen direkt an volljährige Kinder sind darin nicht enthalten.
         </P>
         <P>
           Für die Vergangenheit kann Unterhalt grundsätzlich erst ab dem Monat verlangt werden, in dem zur Auskunft oder
@@ -256,6 +340,25 @@ export function infoTexte(jk: JahresKonfiguration) {
           gemacht werden kann, bitte fachlich prüfen lassen.
         </P>
       </>
+    ),
+    zeitraumZahlungen: (
+      <>
+        <P>
+          Was tatsächlich an den anderen Elternteil gezahlt wurde – je Zeile ein gleichbleibender Monatsbetrag von … bis. Bei
+          wechselnden Beträgen mehrere Zeilen anlegen (z. B. Januar–März 400 €, ab Mai 450 €; Monate ohne Zahlung einfach
+          auslassen). Ohne „Bis“ gilt der Betrag bis zum Ende des Zeitraums.
+        </P>
+        <P>
+          Zahlungen in beide Richtungen werden verrechnet. Ergebnis ist der Rückstand (zu wenig gezahlt) oder die
+          Überzahlung (zu viel gezahlt) des unterhaltspflichtigen Elternteils.
+        </P>
+      </>
+    ),
+    zeitraumBetreuung: (
+      <P>
+        Ab dem angegebenen Monat gilt für das Kind ein anderes Betreuungsmodell – z. B. Umzug zum anderen Elternteil oder
+        Beginn eines Wechselmodells. Es gilt bis zu einem späteren Wechsel oder bis zum Ende des Zeitraums.
+      </P>
     ),
     zeitraumAenderungen: (
       <>

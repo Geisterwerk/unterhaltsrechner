@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from 'react';
+import { cloneElement, isValidElement, useId, useState, type KeyboardEvent, type ReactElement, type ReactNode } from 'react';
 import type { AgeInput, AgeStage } from '../../types';
 import { AGE_STAGE_LABELS } from '../../types';
 import { ageInYears, isValidIsoDate, stageFromAge } from '../../engine/util';
@@ -43,6 +43,33 @@ export function InfoPanel({ id, children, className = '' }: { id: string; childr
   );
 }
 
+/**
+ * Tastaturbedienung für Umschalter mit role="radio" (WAI-ARIA Radio Group): nur die gewählte Option ist per Tab
+ * erreichbar, Pfeiltasten / Pos1 / Ende wechseln die Auswahl und den Fokus.
+ */
+export function radioTasten<T>(optionen: readonly T[], aktuell: T, waehle: (v: T) => void) {
+  return (wert: T) => ({
+    tabIndex: wert === aktuell ? 0 : -1,
+    onKeyDown: (e: KeyboardEvent<HTMLButtonElement>) => {
+      const i = Math.max(0, optionen.indexOf(aktuell));
+      const n =
+        e.key === 'ArrowRight' || e.key === 'ArrowDown'
+          ? (i + 1) % optionen.length
+          : e.key === 'ArrowLeft' || e.key === 'ArrowUp'
+            ? (i - 1 + optionen.length) % optionen.length
+            : e.key === 'Home'
+              ? 0
+              : e.key === 'End'
+                ? optionen.length - 1
+                : -1;
+      if (n < 0) return;
+      e.preventDefault();
+      waehle(optionen[n]);
+      e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="radio"]')[n]?.focus();
+    },
+  });
+}
+
 /** Zustand für ein aufklappbares Info-Feld */
 export function useInfo() {
   const [open, setOpen] = useState(false);
@@ -50,11 +77,27 @@ export function useInfo() {
   return { open, toggle: () => setOpen((o) => !o), id };
 }
 
-/** Beschriftung mit optionalem Info-Symbol */
-export function FieldLabel({ label, info, infoState }: { label: string; info?: ReactNode; infoState: ReturnType<typeof useInfo> }) {
+/** Beschriftung mit optionalem Info-Symbol; mit `htmlFor` als echtes <label> des Eingabeelements */
+export function FieldLabel({
+  label,
+  info,
+  infoState,
+  htmlFor,
+}: {
+  label: string;
+  info?: ReactNode;
+  infoState: ReturnType<typeof useInfo>;
+  htmlFor?: string;
+}) {
   return (
     <div className="mb-1 flex items-center gap-1.5">
-      <span className="text-xs font-medium text-slate-600">{label}</span>
+      {htmlFor ? (
+        <label htmlFor={htmlFor} className="text-xs font-medium text-slate-600">
+          {label}
+        </label>
+      ) : (
+        <span className="text-xs font-medium text-slate-600">{label}</span>
+      )}
       {info && <InfoButton open={infoState.open} onToggle={infoState.toggle} controls={infoState.id} label={label} />}
     </div>
   );
@@ -145,17 +188,41 @@ interface FieldProps {
   children: ReactNode;
 }
 
+/** Elemente, die eine Feld-ID übernehmen können (native Eingaben und MoneyInput) */
+const BESCHRIFTBAR = new Set<unknown>(['input', 'select', 'textarea']);
+
 export function Field({ label, hint, error, className, info, children }: FieldProps) {
   const infoState = useInfo();
+  const autoId = useId();
+  const beschreibungId = `${autoId}-beschreibung`;
+  const beschreibung = error || hint;
+
+  // Beschriftung, Hinweis und Fehler mit dem (einzigen) Eingabeelement verknüpfen – für Screenreader und Tests
+  let feldId: string | undefined;
+  let inhalt = children;
+  if (isValidElement(children) && (BESCHRIFTBAR.has(children.type) || children.type === MoneyInput)) {
+    const el = children as ReactElement<Record<string, unknown>>;
+    feldId = (el.props.id as string | undefined) ?? autoId;
+    inhalt = cloneElement(el, {
+      id: feldId,
+      ...(beschreibung ? { 'aria-describedby': beschreibungId } : {}),
+      ...(error ? { 'aria-invalid': true } : {}),
+    });
+  }
+
   return (
     <div className={className}>
-      <FieldLabel label={label} info={info} infoState={infoState} />
-      {children}
+      <FieldLabel label={label} info={info} infoState={infoState} htmlFor={feldId} />
+      {inhalt}
       {info && infoState.open && <InfoPanel id={infoState.id}>{info}</InfoPanel>}
       {error ? (
-        <p className="mt-1 text-xs text-red-600">{error}</p>
+        <p id={beschreibungId} className="mt-1 text-xs text-red-600">
+          {error}
+        </p>
       ) : hint ? (
-        <p className="mt-1 text-xs text-slate-500">{hint}</p>
+        <p id={beschreibungId} className="mt-1 text-xs text-slate-500">
+          {hint}
+        </p>
       ) : null}
     </div>
   );
@@ -171,12 +238,26 @@ interface MoneyInputProps {
   suffix?: string;
   /** Schrittweite der Pfeiltasten/Spinner (Standard 0,01) */
   step?: number;
+  id?: string;
+  'aria-describedby'?: string;
+  'aria-invalid'?: boolean;
+  'aria-label'?: string;
 }
 
-export function MoneyInput({ value, onChange, nullable, placeholder, error, suffix = '€', step = 0.01 }: MoneyInputProps) {
+export function MoneyInput({
+  value,
+  onChange,
+  nullable,
+  placeholder,
+  error,
+  suffix = '€',
+  step = 0.01,
+  ...aria
+}: MoneyInputProps) {
   return (
     <div className="relative">
       <input
+        {...aria}
         type="number"
         inputMode="decimal"
         step={step}

@@ -131,8 +131,10 @@ Nach Paketänderungen das Dev-Image neu bauen: `docker compose down`, `docker vo
 Bereich „Zeitraum und Rückstand“ (`src/zeitraum/zeitraum.ts`): rechnet jeden Monat einzeln mit `calculate()` –
 Stichtag ist der Monatserste (das Alter wird monatsgenau ermittelt, die höhere Altersstufe gilt ab dem
 Geburtstagsmonat, § 1612a Abs. 3 BGB), Jahreswerte je Kalenderjahr (`inputFuerJahr`). Gleiche Folgemonate werden zu
-Abschnitten zusammengefasst. Rückstand = Summe des monatlichen Ausgleichs zwischen den Eltern − bereits gezahlte
-Beträge. **Einkommensänderungen** ab einem Monat (je Elternteil, in der gewählten Einkommensart netto bzw.
+Abschnitten zusammengefasst. Rückstand = Summe des monatlichen Ausgleichs zwischen den Eltern − **tatsächliche
+Zahlungen** (Liste von Monatsbeträgen von … bis, auch in beide Richtungen; Ergebnis: Rückstand oder Überzahlung des
+Unterhaltspflichtigen). **Betreuungswechsel** ab einem Monat (je Kind) ändern das Betreuungsmodell. Speicherdateien bis
+Version 1.5.0 (fester Monatsbetrag) werden beim Laden in eine Zahlung umgewandelt. **Einkommensänderungen** ab einem Monat (je Elternteil, in der gewählten Einkommensart netto bzw.
 manuelles Brutto; bei Tarif-Eingabe nicht möglich) gelten bis zur nächsten Änderung. Der Zeitraum erscheint im
 PDF-Bericht und wird in der Speicherdatei (`zeitraum`, optional) mitgespeichert. Annahmen: übrige Eingaben konstant; einmaliger Sonderbedarf und Zahlungen direkt an volljährige Kinder sind nicht
 enthalten; Monate ohne hinterlegtes Jahr (derzeit vor 2026) werden ausgelassen. § 1613 BGB (Unterhalt für die
@@ -217,10 +219,24 @@ Gemischte Konstellationen werden in dieser Reihenfolge berechnet (`engine/index.
   Volljährigen wird der Sockel auf den notwendigen SB gesenkt, wenn der Bedarf sonst nicht gedeckt ist. Jeder
   Elternteil zahlt höchstens den Betrag nach seinem eigenen Einkommen. Sonstige Volljährige (Rang 4) nur aus
   Einkommen über dem angemessenen SB.
-- **Berufsbedingte Aufwendungen** (Leitlinien NRW 10.2): grundsätzlich konkret; Pauschale 5 % ohne
-  Mindest-/Höchstbetrag nur auf Auswahl.
-- **Altersvorsorge:** zusätzliche Vorsorge bis 4 % des Bruttoeinkommens (BGH XII ZR 149/01). Bei Brutto-Eingabe
-  wird ein höherer Betrag automatisch gekürzt; bei Netto-Eingabe ist das Brutto unbekannt (nur Hinweis).
+- **Leitlinien wählbar** (`src/config/leitlinien.ts`, Stand 01.01.2026, geprüft am 26.11.2026): Berlin (KG, Standard –
+  `STANDARD_LEITLINIEN`), NRW, Süddeutsche, Niedersachsen. Unterschiede im Rechner: 5 %-Pauschale (NRW: in der Regel nur bei fiktivem
+  Erwerbseinkommen; SüdL: bei Anhaltspunkten; Nds: 50–150 € bei Vollzeit; KG: ohne Nachweis, 50–150 €),
+  Ausbildungsaufwand 100 € (NRW nur bei Wohnen im Elternhaushalt; KG keine Pauschale, nur Nachweis), Altersvorsorge (NRW/Nds 4 % zusätzlich; SüdL insgesamt 23 % einschl. AN- und AG-Anteil
+  RV, also 23 % − 2 × RV-AN-Satz). Andere OLG-Bezirke sind nicht abgebildet.
+- **Berufsbedingte Aufwendungen:** grundsätzlich konkret; Pauschale nur auf Auswahl – bei fiktivem Einkommen nach
+  den Leitlinien NRW automatisch.
+- **Altersvorsorge:** Höchstgrenze laut Leitlinien (BGH XII ZR 149/01). Bei Brutto-Eingabe wird ein höherer Betrag
+  automatisch gekürzt; bei Netto-Eingabe ist das Brutto unbekannt (nur Hinweis).
+- **Fiktives Einkommen** (Erwerbsobliegenheit, § 1603 Abs. 2 BGB, Leitlinien Ziff. 9): ein erzielbares Netto ersetzt
+  ein geringeres tatsächliches; der Elternteil gilt als erwerbstätig (Selbstbehalt, Bedarfskontrolle,
+  Ehegattenunterhalt). Die Höhe gibt der Nutzer vor (BGH XII ZB 388/24: oft Vollzeit zum Mindestlohn).
+- **Private Krankenversicherung:** Elternteil – eigener Beitrag wird abgezogen (Leitlinien 10.1; die Brutto-Netto-
+  Schätzung rechnet mit GKV, daher Warnung). Kind – Beitrag nicht im Tabellenbetrag (DT Anm. A. V):
+  Residenzmodell (minderjährig): Barunterhaltspflichtiger trägt ihn zusätzlich, sein Einkommen wird vorher darum
+  bereinigt (Leitlinien NRW 11.1, BGH XII ZB 338/17); Ehegatten- und Mehrbedarfsberechnung ziehen ihn nicht doppelt
+  ab. Wechselmodell und Volljährige: erhöht den Bedarf und wird nach Haftungsquote verteilt (aus Leitlinien 12.3/13.1
+  abgeleitet); im Wechselmodell zählt die Zahlung an die Versicherung als Leistung in natura des Zahlers.
 - **Wohnvorteil:** mietfreies Wohnen im Eigentum wird als Einkommen hinzugerechnet (Betrag nach Abzug von
   Zins/Tilgung wird eingegeben, nicht berechnet).
 - **Eigeneinkommen Minderjähriger:** hälftig auf den Barunterhalt angerechnet.
@@ -234,12 +250,19 @@ Gemischte Konstellationen werden in dieser Reihenfolge berechnet (`engine/index.
   Er erhöht den Bedarf; jeder Elternteil leistet in natura seine eigenen Wohnkosten + ½ des übrigen Bedarfs, der
   Barausgleich ist die halbe Differenz von (Haftungsanteil − Naturalleistung).
 
+## Barrierefreiheit
+
+Alle Eingabefelder sind über `Field` mit ihrer Beschriftung verknüpft (`<label for>`), Hinweise und Fehler als
+`aria-describedby`. Umschalter (role="radio") lassen sich mit Pfeiltasten, Pos1 und Ende bedienen; Bedienelemente
+haben einen sichtbaren Tastaturfokus. `e2e/barrierefreiheit.spec.ts` prüft mit axe-core (WCAG 2.1 A/AA) die
+Startseite, erweiterte Eingaben und den Dialog sowie Beschriftungen und Tastaturbedienung.
+
 ## Datenstand (Prüfung vom 20.11.2026)
 
 | Datensatz | Quelle | Ergebnis |
 |---|---|---|
 | Düsseldorfer Tabelle 2026 | amtliches PDF OLG Düsseldorf (Stand 01.01.2026) | alle Tabellenwerte bestätigt; BKB Gruppe 1 ergänzt (1.200/1.450 €); amtliches Mangelfallbeispiel als Test |
-| Pauschale, Ausbildungsaufwand, Fahrtkosten | Leitlinien NRW 2026 | Pauschale ohne Min/Max, nur auf Auswahl; 100 € nur im Elternhaushalt; 0,42 €/0,28 € je km |
+| Pauschale, Ausbildungsaufwand, Fahrtkosten, Altersvorsorge | Leitlinien NRW, SüdL, Nds 2026 (geprüft 26.11.2026) | siehe „Leitlinien wählbar“; 0,42 €/0,28 € je km |
 | Lohnsteuer/SV 2026 | BMF-Programmablaufplan 2026, Rechengrößen | bestätigt |
 | Krankenkassen 2026 | krankenkassen.de, gegengeprüft mit krankenkasseninfo.de | alle 10 bestätigt; IKK classic 3,85 % seit 01.08.2026 |
 | Tarifverträge 2026 | oeffentlicher-dienst.info (Tabellen, Gehaltsrechner) | bestätigt inkl. Jahressonderzahlung TV-L |

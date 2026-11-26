@@ -38,7 +38,7 @@ export function ChangelogButton() {
             Schließen
           </button>
         </div>
-        <div className="max-h-[70vh] space-y-5 overflow-y-auto px-5 py-4">
+        <div className="max-h-[70vh] space-y-5 overflow-y-auto px-5 py-4" tabIndex={0} aria-label="Versionen und Änderungen">
           {CHANGELOG.map((e) => (
             <section key={e.version}>
               <h3 className="text-sm font-semibold text-slate-900">

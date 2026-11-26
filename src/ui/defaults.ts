@@ -1,3 +1,4 @@
+import { STANDARD_LEITLINIEN } from '../config/leitlinien';
 import { getJahresKonfiguration, standardJahr } from '../config';
 import type { CalculationInput, CommonChildInput, GrossIncomeInput, OtherChildInput, ParentInput } from '../types';
 
@@ -42,9 +43,11 @@ export function emptyParent(label: string, netIncome: number): ParentInput {
       schulden: 0,
       sonstige: 0,
       wohnvorteil: 0,
+      pkv: 0,
     },
     otherChildren: [],
     weitereBerechtigte: 0,
+    fiktiv: { aktiv: false, netto: 0 },
   };
 }
 
@@ -57,6 +60,7 @@ export function newCommonChild(index: number): CommonChildInput {
     adultRank: 'privilegiert',
     ownIncome: 0,
     kinderzuschlag: 0,
+    krankenversicherung: 0,
     kindergeldRecipient: 'B',
     wechselMehrkosten: 0,
     wechselWohnkosten: { A: 0, B: 0 },
@@ -90,6 +94,7 @@ export function defaultInput(): CalculationInput {
       haushaltskinderEinbeziehen: true,
       wechselNaturalunterhaltAbzug: true,
       wechselStufung: false,
+      leitlinien: STANDARD_LEITLINIEN,
     },
   };
 }

@@ -4,7 +4,7 @@ import { newCommonChild } from '../defaults';
 import { infoTexte } from '../infoTexte';
 import { useJahr } from '../JahrContext';
 import { BedarfspostenList } from './BedarfspostenList';
-import { AgeField, Field, LabeledBlock, MoneyInput, NameInput, Toggle } from './fields';
+import { AgeField, Field, LabeledBlock, MoneyInput, NameInput, radioTasten, Toggle } from './fields';
 
 interface Props {
   value: CommonChildInput[];
@@ -91,6 +91,7 @@ export function ChildrenForm({ value, onChange, parents, errorFor, referenceDate
                     type="button"
                     role="radio"
                     aria-checked={c.care === care}
+                    {...radioTasten(CARE_OPTIONS, c.care, (v) => update(i, { care: v }))(care)}
                     onClick={() => update(i, { care })}
                     className={`truncate rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
                       c.care === care ? 'bg-white text-petrol-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
@@ -139,6 +140,26 @@ export function ChildrenForm({ value, onChange, parents, errorFor, referenceDate
               >
                 <MoneyInput value={c.kinderzuschlag ?? 0} onChange={(v) => update(i, { kinderzuschlag: v ?? 0 })} />
               </Field>
+              <Field
+                label="Kranken-/Pflegeversicherung (privat)"
+                info={info.kvKind}
+                hint="nur wenn nicht familienversichert; nach Abzug der Beihilfe"
+                error={errorFor(`children.${i}.krankenversicherung`)}
+              >
+                <MoneyInput value={c.krankenversicherung ?? 0} onChange={(v) => update(i, { krankenversicherung: v ?? 0 })} />
+              </Field>
+              {c.care === 'wechsel' && (c.krankenversicherung ?? 0) > 0 && (
+                <Field label="Versicherungsbeitrag zahlt" info={info.kvZahler}>
+                  <select
+                    className="input"
+                    value={c.kvZahler ?? c.kindergeldRecipient}
+                    onChange={(e) => update(i, { kvZahler: e.target.value as ParentId })}
+                  >
+                    <option value="A">{parents.A.label}</option>
+                    <option value="B">{parents.B.label}</option>
+                  </select>
+                </Field>
+              )}
               <Field label="Rang (falls volljährig)" info={info.rangVolljaehrig}>
                 <select
                   className="input"

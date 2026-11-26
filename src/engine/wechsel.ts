@@ -1,6 +1,6 @@
 import type { ChildPayment, ParentId } from '../types';
 import { AGE_STAGE_LABELS } from '../types';
-import { kindeseinkommenText, minorOwnIncomeCredit, otherChildZahlbetrag } from './children';
+import { kindeseinkommenText, kvBeitrag, minorOwnIncomeCredit, otherChildZahlbetrag } from './children';
 import { StepSections, type EngineContext, type PartialResult } from './context';
 import { fmt, pct } from './format';
 import { notwendigerSelbstbehalt } from './income';
@@ -132,11 +132,27 @@ export function calculateWechsel(
     const wA = Math.max(0, m.input.wechselWohnkosten?.A ?? 0);
     const wB = Math.max(0, m.input.wechselWohnkosten?.B ?? 0);
     const summe = round2(wA + wB);
+    const kv = kvBeitrag(m.input);
+    const kvZahler: ParentId = m.input.kvZahler ?? m.input.kindergeldRecipient;
     const imTabellenbetrag = round2(t * cfg.wohnkostenanteilTabelle);
     const wohnMehr = summe > 0 ? round2(Math.max(0, summe - imTabellenbetrag)) : 0;
-    wohnen.set(m.input.id, { A: wA, B: wB, summe, mehrbedarf: wohnMehr });
-    mehrkosten.set(m.input.id, round2(mk + wohnMehr));
-    const b = round2(Math.max(0, t + wohnMehr + mk - own));
+    // direkt bezahlte Kosten je Elternteil (Wohnkosten des Kindes, KV-Beitrag) zählen als Leistung in natura
+    wohnen.set(m.input.id, {
+      A: round2(wA + (kvZahler === 'A' ? kv : 0)),
+      B: round2(wB + (kvZahler === 'B' ? kv : 0)),
+      summe: round2(summe + kv),
+      mehrbedarf: wohnMehr,
+    });
+    mehrkosten.set(m.input.id, round2(mk + wohnMehr + kv));
+    const b = round2(Math.max(0, t + wohnMehr + kv + mk - own));
+    if (kv > 0) {
+      s.add(4, {
+        label: `${m.input.label}: Kranken-/Pflegeversicherung`,
+        value: kv,
+        money: true,
+        note: `nicht im Tabellenbetrag; zahlt ${label(kvZahler)} (zählt als Leistung in natura)`,
+      });
+    }
     bedarf.set(m.input.id, b);
     if (summe > 0) {
       s.add(4, {
@@ -147,7 +163,7 @@ export function calculateWechsel(
     }
     s.add(4, {
       label: `${m.input.label} (${AGE_STAGE_LABELS[m.stage]})`,
-      value: `Tabelle ${fmt(t)}${wohnMehr > 0 ? ` + Wohnmehrbedarf ${fmt(wohnMehr)}` : ''}${
+      value: `Tabelle ${fmt(t)}${wohnMehr > 0 ? ` + Wohnmehrbedarf ${fmt(wohnMehr)}` : ''}${kv > 0 ? ` + KV/PV ${fmt(kv)}` : ''}${
         mk > 0 ? ` + Mehrkosten ${fmt(mk)}` : ''
       }${kindeseinkommenText(m, fmt)} = ${fmt(b)}`,
     });
@@ -284,7 +300,7 @@ export function calculateWechsel(
             {
               label: '  Leistung in natura',
               value: `${label('A')} ${fmt(natura.A)} · ${label('B')} ${fmt(natura.B)}`,
-              note: `eigene Wohnkosten des Kindes + ½ des übrigen Bedarfs (${fmt(uebrig)})`,
+              note: `direkt bezahlte Kosten (Wohnen, KV) + ½ des übrigen Bedarfs (${fmt(uebrig)})`,
             },
           ]
         : []),

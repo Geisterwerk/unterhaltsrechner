@@ -1,3 +1,5 @@
+import type { LeitlinienId } from '../config/leitlinien';
+
 /**
  * Datenmodelle des Unterhaltsrechners.
  * Keine Logik, keine UI-Abhängigkeiten.
@@ -340,6 +342,8 @@ export interface DeductionsInput {
   sonstige: number;
   /** Wohnvorteil (mietfreies Wohnen im Eigentum, nach Abzug von Zins/Tilgung) – wird hinzugerechnet */
   wohnvorteil: number;
+  /** Beitrag zur privaten Kranken- und Pflegeversicherung (nur bei Netto-Eingabe sinnvoll) */
+  pkv?: number;
 }
 
 /**
@@ -376,6 +380,11 @@ export interface ParentInput {
   otherChildren: OtherChildInput[];
   /** Weitere Unterhaltsberechtigte für die Zu-/Herabstufung (z. B. Ehegatte) */
   weitereBerechtigte: number;
+  /**
+   * Fiktives Einkommen bei Verletzung der Erwerbsobliegenheit (§ 1603 Abs. 2 BGB): erzielbares Nettoeinkommen,
+   * das ein geringeres tatsächliches Einkommen ersetzt; der Elternteil gilt dann als erwerbstätig.
+   */
+  fiktiv?: { aktiv: boolean; netto: number };
 }
 
 /**
@@ -403,6 +412,13 @@ export interface CommonChildInput {
   ownIncome: number;
   /** tatsächlich bezogener Kinderzuschlag (§ 6a BKGG) je Monat – mindert den Bedarf voll (BGH XII ZB 512/19) */
   kinderzuschlag: number;
+  /**
+   * Beitrag zur Kranken- und Pflegeversicherung des Kindes, wenn es nicht familienversichert ist (nach Abzug der
+   * Beihilfe). Nicht im Tabellenbetrag enthalten (DT Anm. A. V, Leitlinien NRW 11.1).
+   */
+  krankenversicherung?: number;
+  /** wer den Beitrag an die Versicherung zahlt (nur Wechselmodell relevant; Standard: Kindergeldempfänger) */
+  kvZahler?: ParentId;
   /** wer erhält das Kindergeld */
   kindergeldRecipient: ParentId;
   /** Wechselmodell: sonstiger Mehrbedarf je Kind (z. B. Fahrtkosten); Wohnkosten separat in `wechselWohnkosten` */
@@ -429,6 +445,8 @@ export interface CalculationOptions {
   wechselNaturalunterhaltAbzug: boolean;
   /** Wechselmodell: Zu-/Herabstufung nach Anzahl der Berechtigten anwenden */
   wechselStufung: boolean;
+  /** maßgebliche Leitlinien der Oberlandesgerichte (Standard: NRW) */
+  leitlinien?: LeitlinienId;
 }
 
 export interface EhegattenInput {
@@ -492,6 +510,8 @@ export interface ChildPayment {
   note?: string;
   /** 'unterhalt' (Tabellenunterhalt) oder 'mehrbedarf' (Anteil am laufenden Mehrbedarf) */
   art?: 'unterhalt' | 'mehrbedarf';
+  /** im Betrag enthaltener Beitrag zur Kranken-/Pflegeversicherung des Kindes (Residenzmodell) */
+  kv?: number;
 }
 
 export interface EhegattenErgebnis {

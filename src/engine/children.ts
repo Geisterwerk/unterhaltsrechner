@@ -1,3 +1,4 @@
+import { leitlinienFuer } from '../config/leitlinien';
 import type {
   AdultRank,
   AgeStage,
@@ -64,7 +65,9 @@ export function resolveCommonChildren(input: CalculationInput, cfg: UnterhaltsTa
     // pauschaler Ausbildungsaufwand nur bei Wohnen im Elternhaushalt (Leitlinien NRW 10.2.3); bei eigenem
     // Haushalt sind ausbildungsbedingte Aufwendungen bis 100 € im festen Bedarf enthalten (Leitlinien NRW 13.1 Abs. 2)
     const imElternhaushalt = !(stage === 3 && c.eigenerHaushalt);
-    const abzug = imElternhaushalt ? cfg.ausbildungsbedingterMehrbedarf : 0;
+    const regel = leitlinienFuer(input.options.leitlinien).ausbildungsaufwand;
+    const abzug =
+      regel === 'immer' || (regel === 'nurElternhaushalt' && imElternhaushalt) ? cfg.ausbildungsbedingterMehrbedarf : 0;
     const ownIncomeNet = c.ownIncome > 0 ? Math.max(0, c.ownIncome - abzug) : 0;
     // Volljährige mit eigenem Haushalt sind nicht privilegiert (§ 1603 Abs. 2 S. 2 BGB setzt Elternhaushalt voraus)
     const eigenerHaushalt = stage === 3 && c.eigenerHaushalt;
@@ -81,6 +84,11 @@ export function resolveCommonChildren(input: CalculationInput, cfg: UnterhaltsTa
  */
 export function minorOwnIncomeCredit(child: ResolvedCommonChild): number {
   return (child.stage < 3 ? child.ownIncomeNet / 2 : child.ownIncomeNet) + child.kinderzuschlag;
+}
+
+/** Monatlicher Beitrag zur Kranken-/Pflegeversicherung des Kindes (0, wenn familienversichert) */
+export function kvBeitrag(c: CommonChildInput): number {
+  return Math.max(0, c.krankenversicherung ?? 0);
 }
 
 /** Text für den Rechenweg: angerechnetes Kindeseinkommen (leer, wenn keins) */
@@ -120,6 +128,7 @@ export interface AdultShare {
   kindergeld: number;
   ownIncomeNet: number;
   kinderzuschlag: number;
+  krankenversicherung: number;
   restbedarf: number;
   available: Record<ParentId, number>;
   quote: Record<ParentId, number>;
@@ -159,7 +168,9 @@ export function computeAdultShares(
     const bedarf = eigenerHaushalt ? cfg.bedarfVolljaehrigEigenerHaushalt : tableAmount(group, 3, cfg);
     const aboveTable = eigenerHaushalt ? false : ueber;
     const kindergeld = cfg.kindergeld;
-    const restbedarf = round2(Math.max(0, bedarf - kindergeld - c.ownIncomeNet - c.kinderzuschlag));
+    // KV/PV des nicht familienversicherten Kindes ist nicht im Bedarf enthalten (Leitlinien NRW 13.1 Abs. 2) → zusätzlich
+    const kv = kvBeitrag(c.input);
+    const restbedarf = round2(Math.max(0, bedarf + kv - kindergeld - c.ownIncomeNet - c.kinderzuschlag));
 
     const verfuegbar = (sockel: Record<ParentId, number>, mitVorweg: boolean) => ({
       A: round2(Math.max(0, income.A - (mitVorweg ? vorwegabzug.A : 0) - sockel.A)),
@@ -198,7 +209,10 @@ export function computeAdultShares(
       if (begrenzen) s = Math.min(s, available[p]);
       if (!eigenerHaushalt) {
         const eigeneGruppe = findIncomeGroup(income[p], cfg).group;
-        obergrenze[p] = round2(Math.max(0, tableAmount(eigeneGruppe, 3, cfg) - kindergeld - c.ownIncomeNet - c.kinderzuschlag));
+        obergrenze[p] = round2(
+          // KV-Beitrag nur in Höhe des eigenen Quotenanteils (sonst trügen beide Eltern zusammen mehr als den Beitrag)
+          Math.max(0, tableAmount(eigeneGruppe, 3, cfg) + kv * quote[p] - kindergeld - c.ownIncomeNet - c.kinderzuschlag),
+        );
         s = Math.min(s, obergrenze[p]!);
       }
       share[p] = round2(s);
@@ -216,6 +230,7 @@ export function computeAdultShares(
       kindergeld,
       ownIncomeNet: c.ownIncomeNet,
       kinderzuschlag: c.kinderzuschlag,
+      krankenversicherung: kv,
       restbedarf,
       available,
       quote,

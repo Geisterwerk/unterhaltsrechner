@@ -1,9 +1,16 @@
+import { LEITLINIEN_IDS, STANDARD_LEITLINIEN } from '../config/leitlinien';
 import { standardJahr, verfuegbareJahre } from '../config';
 import { APP_VERSION } from '../config/changelog';
 import type { Szenario } from '../compare/vergleich';
 import type { AgeInput, AgeStage, BedarfsPosten, CalculationInput, ParentId } from '../types';
 import { defaultInput, emptyParent, newCommonChild, newId, newOtherChild } from './defaults';
-import { zeitraumStandard, type EinkommensAenderung, type ZeitraumEinstellung } from '../zeitraum/zeitraum';
+import {
+  zeitraumStandard,
+  type BetreuungsAenderung,
+  type EinkommensAenderung,
+  type ZahlungsEintrag,
+  type ZeitraumEinstellung,
+} from '../zeitraum/zeitraum';
 
 /**
  * Speichern und Laden der Eingaben als JSON-Datei. Die Datei bleibt beim Nutzer; es wird nichts
@@ -142,12 +149,14 @@ function normalisiereInput(roh: unknown, hinweise: string[]): CalculationInput {
       age: alterPruefen(k.age),
       care: erlaubt(k.care, ['A', 'B', 'wechsel'], 'B'),
       kindergeldRecipient: erlaubt(k.kindergeldRecipient, ELTERN, 'B'),
+      ...(k.kvZahler !== undefined ? { kvZahler: erlaubt(k.kvZahler, ELTERN, 'A') } : {}),
       adultRank: erlaubt(k.adultRank, ['privilegiert', 'sonstig'], 'privilegiert'),
       bedarfsposten: posten,
     };
   });
 
   if (input.ehegatte) input.ehegatte.art = erlaubt(input.ehegatte.art, ['trennung', 'nachehelich'], 'trennung');
+  input.options.leitlinien = erlaubt(input.options.leitlinien ?? STANDARD_LEITLINIEN, LEITLINIEN_IDS, STANDARD_LEITLINIEN);
   if (!verfuegbareJahre.includes(input.jahr)) {
     const ersatz = standardJahr();
     hinweise.push(`Das Berechnungsjahr ${input.jahr} ist in dieser Version nicht verfügbar – es wurde ${ersatz} verwendet.`);
@@ -162,7 +171,6 @@ function normalisiereZeitraum(roh: unknown): ZeitraumEinstellung | null {
   if (!istObjekt(roh)) return null;
   const basis = zeitraumStandard();
   const z = zusammenfuehren(basis, roh);
-  z.zahler = erlaubt(z.zahler, ELTERN, 'A');
   if (!MONAT.test(z.von)) z.von = basis.von;
   if (!MONAT.test(z.bis)) z.bis = basis.bis;
   z.aenderungen = (Array.isArray(roh.aenderungen) ? roh.aenderungen : [])
@@ -171,6 +179,24 @@ function normalisiereZeitraum(roh: unknown): ZeitraumEinstellung | null {
       return { ...ae, elternteil: erlaubt(ae.elternteil, ELTERN, 'A') };
     })
     .filter((a) => MONAT.test(a.ab));
+  z.betreuung = (Array.isArray(roh.betreuung) ? roh.betreuung : [])
+    .map((b) => {
+      const be = zusammenfuehren<BetreuungsAenderung>({ id: newId('betreuung'), ab: '', childId: '', care: 'B' }, b);
+      return { ...be, care: erlaubt(be.care, ['A', 'B', 'wechsel'] as const, 'B') };
+    })
+    .filter((b) => MONAT.test(b.ab) && b.childId !== '');
+  z.zahlungen = (Array.isArray(roh.zahlungen) ? roh.zahlungen : [])
+    .map((zl) => {
+      const ze = zusammenfuehren<ZahlungsEintrag>({ id: newId('zahlung'), von: '', bis: '', zahler: 'A', betrag: 0 }, zl);
+      return { ...ze, zahler: erlaubt(ze.zahler, ELTERN, 'A'), bis: MONAT.test(ze.bis) ? ze.bis : '' };
+    })
+    .filter((zl) => MONAT.test(zl.von));
+  // Format bis Version 1.5.0: ein fester Monatsbetrag für den ganzen Zeitraum
+  if (!Array.isArray(roh.zahlungen) && roh.mitGezahlt === true && typeof roh.betragMonatlich === 'number' && roh.betragMonatlich > 0) {
+    z.zahlungen = [
+      { id: newId('zahlung'), von: z.von, bis: '', zahler: roh.zahler === 'B' ? 'B' : 'A', betrag: roh.betragMonatlich },
+    ];
+  }
   return z;
 }
 

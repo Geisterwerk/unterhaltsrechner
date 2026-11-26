@@ -1,3 +1,4 @@
+import { leitlinienFuer } from '../config/leitlinien';
 import { getJahresKonfiguration } from '../config';
 import { calculate, fmt } from '../engine';
 import { bereinigtesEinkommen } from '../engine/income';
@@ -60,8 +61,8 @@ export function buildVergleich(szenarien: Szenario[]): Vergleich {
   for (const p of PARENTS) {
     zeile(
       `Bereinigtes Einkommen ${name(p)}`,
-      (s) => fmt(bereinigtesEinkommen(s.input.parents[p], getJahresKonfiguration(s.input.jahr)).bereinigt),
-      (s) => bereinigtesEinkommen(s.input.parents[p], getJahresKonfiguration(s.input.jahr)).bereinigt,
+      (s) => fmt(bereinigtesEinkommen(s.input.parents[p], getJahresKonfiguration(s.input.jahr), leitlinienFuer(s.input.options.leitlinien)).bereinigt),
+      (s) => bereinigtesEinkommen(s.input.parents[p], getJahresKonfiguration(s.input.jahr), leitlinienFuer(s.input.options.leitlinien)).bereinigt,
     );
   }
 

@@ -1,3 +1,4 @@
+import { giltAlsErwerbstaetig } from './income';
 import type { CalculationStep, ChildPayment, EhegattenErgebnis, ParentId, StepLine, ValidationIssue } from '../types';
 import { otherChildZahlbetrag } from './children';
 import type { EngineContext } from './context';
@@ -34,7 +35,8 @@ export function calculateEhegatte(ctx: EngineContext, kindesunterhalt: ChildPaym
   const praegend: Record<ParentId, number> = { A: 0, B: 0 };
   const kuSumme: Record<ParentId, number> = { A: 0, B: 0 };
   for (const p of PARENTS) {
-    const gemeinsam = sum(kindesunterhalt.filter((z) => z.payer === p).map((z) => z.amount));
+    // KV-Beiträge der Kinder sind bereits vom Einkommen abgezogen (bereinigt) – nicht doppelt berücksichtigen
+    const gemeinsam = sum(kindesunterhalt.filter((z) => z.payer === p).map((z) => z.amount - (z.kv ?? 0)));
     const g = groupWithStufung(
       inc[p].bereinigt,
       common.length + others[p].length + Math.max(0, input.parents[p].weitereBerechtigte),
@@ -49,7 +51,7 @@ export function calculateEhegatte(ctx: EngineContext, kindesunterhalt: ChildPaym
       label: `${label(p)}: ${fmt(inc[p].bereinigt)} − Kindesunterhalt ${fmt(kuSumme[p])}`,
       value: praegend[p],
       money: true,
-      note: input.parents[p].employed ? 'Erwerbseinkommen (Erwerbsanreiz 1/10)' : 'sonstige Einkünfte (Halbteilung)',
+      note: giltAlsErwerbstaetig(input.parents[p]) ? 'Erwerbseinkommen (Erwerbsanreiz 1/10)' : 'sonstige Einkünfte (Halbteilung)',
     });
   }
   const familieneinkommen = round2(praegend.A + praegend.B);
@@ -61,7 +63,7 @@ export function calculateEhegatte(ctx: EngineContext, kindesunterhalt: ChildPaym
   }
 
   // 2. Quotenunterhalt (Differenzmethode): positiv = A zahlt an B
-  const anteil = (p: ParentId) => (input.parents[p].employed ? e.erwerbsquote : e.sonstigeQuote) * praegend[p];
+  const anteil = (p: ParentId) => (giltAlsErwerbstaetig(input.parents[p]) ? e.erwerbsquote : e.sonstigeQuote) * praegend[p];
   const differenzAzuB = round2(anteil('A') - anteil('B'));
   if (differenzAzuB === 0) {
     lines.push({ label: 'Ehegattenunterhalt', value: 'kein Anspruch (gleiche prägende Einkommen)', emphasis: true });
@@ -76,7 +78,7 @@ export function calculateEhegatte(ctx: EngineContext, kindesunterhalt: ChildPaym
   });
 
   // 3. Mindestbedarf des Berechtigten
-  const mindestbedarf = input.parents[payee].employed ? e.mindestbedarf.erwerbstaetig : e.mindestbedarf.nichtErwerbstaetig;
+  const mindestbedarf = giltAlsErwerbstaetig(input.parents[payee]) ? e.mindestbedarf.erwerbstaetig : e.mindestbedarf.nichtErwerbstaetig;
   const eigenesEinkommen = inc[payee].bereinigt;
   const mindestAnspruch = round2(Math.max(0, mindestbedarf - eigenesEinkommen));
   let anspruch = quotenunterhalt;
@@ -91,7 +93,7 @@ export function calculateEhegatte(ctx: EngineContext, kindesunterhalt: ChildPaym
   }
 
   // 4. Leistungsfähigkeit des Pflichtigen
-  const sb = input.parents[payer].employed ? e.selbstbehalt.erwerbstaetig : e.selbstbehalt.nichtErwerbstaetig;
+  const sb = giltAlsErwerbstaetig(input.parents[payer]) ? e.selbstbehalt.erwerbstaetig : e.selbstbehalt.nichtErwerbstaetig;
   const verfuegbar = round2(Math.max(0, inc[payer].bereinigt - kuSumme[payer] - sb));
   lines.push({
     label: `Leistungsfähigkeit ${label(payer)}: ${fmt(inc[payer].bereinigt)} − Kindesunterhalt ${fmt(kuSumme[payer])} − Selbstbehalt ${fmt(sb)}`,

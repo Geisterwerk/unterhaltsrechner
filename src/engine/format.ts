@@ -92,12 +92,19 @@ export function incomeStep(
       );
     }
     lines.push(
-      {
-        label: `${l}: Nettoeinkommen${b ? ' (geschätzt, ⌀ monatlich)' : ''}`,
-        value: i.netto,
-        money: true,
-        note: b ? 'Jahresnetto / 12' : undefined,
-      },
+      i.fiktiv
+        ? {
+            label: `${l}: fiktives Nettoeinkommen`,
+            value: i.netto,
+            money: true,
+            note: `erzielbares Einkommen bei Erwerbsobliegenheit (§ 1603 Abs. 2 BGB) statt tatsächlich ${fmt(i.nettoTatsaechlich ?? 0)}`,
+          }
+        : {
+            label: `${l}: Nettoeinkommen${b ? ' (geschätzt, ⌀ monatlich)' : ''}`,
+            value: i.netto,
+            money: true,
+            note: b ? 'Jahresnetto / 12' : undefined,
+          },
       ...(i.wohnvorteil > 0
         ? [{ label: `  + Wohnvorteil`, value: i.wohnvorteil, money: true, note: 'mietfreies Wohnen im Eigentum' }]
         : []),
@@ -105,6 +112,19 @@ export function incomeStep(
       { label: `  − Altersvorsorge`, value: i.altersvorsorge, money: true, note: i.altersvorsorgeHinweis },
       { label: `  − berücksichtigungsfähige Schulden`, value: i.schulden, money: true },
       { label: `  − sonstige Abzüge`, value: i.sonstige, money: true },
+      ...(i.pkv > 0
+        ? [{ label: `  − private Kranken-/Pflegeversicherung`, value: i.pkv, money: true, note: 'eigener Beitrag (Leitlinien 10.1)' }]
+        : []),
+      ...(i.kvKinder > 0
+        ? [
+            {
+              label: `  − Kranken-/Pflegeversicherung der Kinder`,
+              value: i.kvKinder,
+              money: true,
+              note: 'trägt der Barunterhaltspflichtige zusätzlich (Leitlinien NRW 11.1)',
+            },
+          ]
+        : []),
       { label: `${l}: bereinigtes Nettoeinkommen`, value: i.bereinigt, money: true, emphasis: true },
     );
   }

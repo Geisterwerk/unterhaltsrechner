@@ -36,7 +36,7 @@ export function calculateMehrbedarf(ctx: EngineContext, unterhalt: ChildPayment[
   const verfuegbar: Record<ParentId, number> = { A: 0, B: 0 };
   for (const p of PARENTS) {
     const kindesunterhalt = round2(
-      sum(unterhalt.filter((z) => z.payer === p && z.art !== 'mehrbedarf').map((z) => z.amount)),
+      sum(unterhalt.filter((z) => z.payer === p && z.art !== 'mehrbedarf').map((z) => z.amount - (z.kv ?? 0))),
     );
     const g = groupWithStufung(
       inc[p].bereinigt,

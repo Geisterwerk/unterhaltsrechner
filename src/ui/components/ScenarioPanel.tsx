@@ -61,7 +61,7 @@ export function ScenarioPanel({ input, szenarien, onSave, onLoad, onRemove }: Pr
       {voll && <p className="text-xs text-amber-700">Maximal {MAX_SZENARIEN} Szenarien – bitte eines entfernen.</p>}
 
       {vergleich && (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Vergleichstabelle der Szenarien">
           <table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left align-bottom">

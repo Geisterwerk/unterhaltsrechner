@@ -3,7 +3,7 @@ import { AGE_STAGE_LABELS } from '../types';
 import { commonMinorZahlbetrag, kindeseinkommenText, otherChildZahlbetrag, type Rang } from './children';
 import { StepSections, type EngineContext, type PartialResult } from './context';
 import { fmt, pct } from './format';
-import { notwendigerSelbstbehalt } from './income';
+import { notwendigerSelbstbehalt, giltAlsErwerbstaetig } from './income';
 import { getGroup, groupWithStufung, kindergeldCredit, tableAmount } from './table';
 import { otherParent, round2, sum } from './util';
 
@@ -159,7 +159,7 @@ export function calculateBarunterhalt(payer: ParentId, ctx: EngineContext): Part
     const total = round2(sum(rang1.map((c) => c.amountAt(group))));
     const rest = round2(payerIncome - total);
     const bkb =
-      !payerInput.employed && g.bedarfskontrollbetragNichtErwerbstaetig !== undefined
+      !giltAlsErwerbstaetig(payerInput) && g.bedarfskontrollbetragNichtErwerbstaetig !== undefined
         ? g.bedarfskontrollbetragNichtErwerbstaetig
         : g.bedarfskontrollbetrag;
     const ok = rest >= bkb;

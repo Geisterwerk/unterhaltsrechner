@@ -4,7 +4,7 @@ import { effectiveGross } from '../../engine/tarif';
 import type { GrossIncomeInput, Steuerklasse } from '../../types';
 import { infoTexte } from '../infoTexte';
 import { useJahr } from '../JahrContext';
-import { Field, LabeledBlock, MoneyInput, Toggle } from './fields';
+import { Field, LabeledBlock, MoneyInput, radioTasten, Toggle } from './fields';
 import { TarifFields } from './TarifFields';
 
 interface Props {
@@ -97,6 +97,7 @@ export function GrossIncomeFields({ value, onChange, errorFor, fieldPrefix: f }:
               type="button"
               role="radio"
               aria-checked={value.quelle === q}
+              {...radioTasten(['manuell', 'tarif'] as const, value.quelle, selectQuelle)(q)}
               onClick={() => selectQuelle(q)}
               className={`rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
                 value.quelle === q ? 'bg-white text-petrol-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'

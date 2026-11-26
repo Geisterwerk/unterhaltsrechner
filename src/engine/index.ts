@@ -21,6 +21,8 @@ import {
 } from './children';
 import { StepSections, type EngineContext, type StepId } from './context';
 import { fmt, incomeStep, pct } from './format';
+import { leitlinienFuer } from '../config/leitlinien';
+import { kvBeitrag } from './children';
 import { bereinigtesEinkommen, notwendigerSelbstbehalt } from './income';
 import { groupWithStufung } from './table';
 import { otherParent, round2, sum } from './util';
@@ -87,8 +89,16 @@ function berechne(input: CalculationInput, tabelleOverride?: UnterhaltsTabelleCo
   const careText = (care: ChildCare) => (care === 'wechsel' ? 'Wechselmodell 50 : 50' : `lebt bei ${label(care)}`);
 
   // Einkommen & Kinder
-  const inc = { A: bereinigtesEinkommen(input.parents.A, jk), B: bereinigtesEinkommen(input.parents.B, jk) };
+  const ll = leitlinienFuer(input.options.leitlinien);
   const common = resolveCommonChildren(input, cfg);
+  // Kranken-/Pflegeversicherung nicht familienversicherter minderjähriger Kinder im Residenzmodell: trägt der
+  // Barunterhaltspflichtige zusätzlich; sein Einkommen wird darum bereinigt (Leitlinien NRW 11.1, BGH XII ZB 338/17)
+  const kvResidenz = (p: ParentId) =>
+    round2(sum(common.filter((c) => c.stage < 3 && c.care === otherParent(p)).map((c) => kvBeitrag(c.input))));
+  const inc = {
+    A: bereinigtesEinkommen(input.parents.A, jk, ll, kvResidenz('A')),
+    B: bereinigtesEinkommen(input.parents.B, jk, ll, kvResidenz('B')),
+  };
   const others = {
     A: resolveOtherChildren(input.parents.A.otherChildren, input.referenceDate),
     B: resolveOtherChildren(input.parents.B.otherChildren, input.referenceDate),
@@ -147,7 +157,9 @@ function berechne(input: CalculationInput, tabelleOverride?: UnterhaltsTabelleCo
               : `Gr. ${a.group}, Einkommen beider Eltern ${fmt(a.combinedIncome)}`
           }) − KG ${fmt(
             a.kindergeld,
-          )}${a.ownIncomeNet > 0 ? ` − Eigeneinkommen ${fmt(a.ownIncomeNet)}` : ''}${
+          )}${a.krankenversicherung > 0 ? ` + Kranken-/Pflegeversicherung ${fmt(a.krankenversicherung)}` : ''}${
+            a.ownIncomeNet > 0 ? ` − Eigeneinkommen ${fmt(a.ownIncomeNet)}` : ''
+          }${
             a.kinderzuschlag > 0 ? ` − Kinderzuschlag ${fmt(a.kinderzuschlag)}` : ''
           } = ${fmt(a.restbedarf)}`,
         },
@@ -180,6 +192,29 @@ function berechne(input: CalculationInput, tabelleOverride?: UnterhaltsTabelleCo
     issues.push(...r.issues);
     barVorweg[p] = rang1PaymentsOf(p, r.payments, ctx);
   }
+  // KV/PV-Beitrag des Kindes zusätzlich zum Tabellenunterhalt (Residenzmodell)
+  for (const c of common.filter((x) => x.stage < 3 && x.care !== 'wechsel' && kvBeitrag(x.input) > 0)) {
+    const kv = kvBeitrag(c.input);
+    const zahler = otherParent(c.care as ParentId);
+    const z = payments.find((x) => x.childId === c.input.id && x.payer === zahler);
+    if (z) {
+      z.amount = round2(z.amount + kv);
+      z.kv = kv;
+      z.note = `${z.note ? `${z.note}; ` : ''}inkl. Kranken-/Pflegeversicherung ${fmt(kv)}`;
+      all.add(4, {
+        label: `${c.input.label}: Kranken-/Pflegeversicherung`,
+        value: kv,
+        money: true,
+        note: `zusätzlich von ${label(zahler)} zu tragen (nicht im Tabellenbetrag, Leitlinien NRW 11.1)`,
+      });
+    } else {
+      issues.push({
+        severity: 'warning',
+        message: `${c.input.label}: Der Kranken-/Pflegeversicherungsbeitrag konnte keiner Zahlung zugeordnet werden (keine Leistungsfähigkeit?) – gesondert prüfen.`,
+      });
+    }
+  }
+
   const w = calculateWechsel(ctx, barVorweg);
   if (w) {
     all.merge(w.sections);
