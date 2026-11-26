@@ -58,6 +58,7 @@ export function newCommonChild(index: number): CommonChildInput {
     ownIncome: 0,
     kindergeldRecipient: 'B',
     wechselMehrkosten: 0,
+    wechselWohnkosten: { A: 0, B: 0 },
     eigenerHaushalt: false,
     bedarfsposten: [],
   };

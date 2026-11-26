@@ -240,9 +240,25 @@ export function infoTexte(jk: JahresKonfiguration) {
     ),
     wechselMehrkosten: (
       <P>
-        Zusätzliche monatliche Kosten, weil das Kind in zwei Haushalten lebt, z. B. höhere Wohnkosten für ein zweites Kinderzimmer
-        oder Fahrtkosten zwischen den Wohnungen.
+        Weitere monatliche Kosten, weil das Kind in zwei Haushalten lebt, z. B. Fahrtkosten zwischen den Wohnungen oder doppelt
+        angeschaffte Ausstattung. Wohnkosten nicht hier, sondern in den Feldern „Wohnkosten des Kindes“ eintragen – sonst werden sie
+        doppelt gezählt. Wird nach Haftungsquote auf beide Eltern verteilt.
       </P>
+    ),
+    wechselWohnkosten: (
+      <>
+        <P>
+          Die tatsächlichen monatlichen Wohnkosten, die in diesem Haushalt auf das Kind entfallen – üblich ist die anteilige
+          Warmmiete nach Fläche: Kinderzimmer voll plus ein Anteil an Küche, Bad und Flur. Beispiel: Warmmiete 1.200 € für
+          80 m², Kinderzimmer 12 m² plus ¼ von 20 m² Gemeinschaftsfläche = 17 m² → 1.200 € × 17/80 ≈ 255 €.
+        </P>
+        <P>
+          Im Tabellenbetrag sind bereits rund {Math.round(t.wohnkostenanteilTabelle * 100)} % für Wohnen enthalten. Nur was beide
+          Haushalte zusammen darüber hinaus kosten, ist Wohnmehrbedarf; er erhöht den Bedarf und wird nach Haftungsquote verteilt.
+          Die Wohnkosten zählt jeder Elternteil als eigene Leistung in natura. Eine Aufteilung der Miete nach Köpfen wird von
+          Gerichten meist nicht anerkannt.
+        </P>
+      </>
     ),
     eigenerHaushalt: (
       <P>

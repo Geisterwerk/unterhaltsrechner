@@ -203,6 +203,9 @@ export function buildReportModel(
                 b.art === 'mehrbedarf' ? '/Monat' : ' einmalig'
               } (bezahlt von ${parents[b.verauslagt].label})`,
           ),
+        c.care === 'wechsel' && ((c.wechselWohnkosten?.A ?? 0) > 0 || (c.wechselWohnkosten?.B ?? 0) > 0)
+          ? `Wohnkosten ${parents.A.label} ${fmt(c.wechselWohnkosten.A)} / ${parents.B.label} ${fmt(c.wechselWohnkosten.B)}`
+          : '',
         c.care === 'wechsel' && c.wechselMehrkosten > 0 ? `Mehrkosten ${fmt(c.wechselMehrkosten)}` : '',
       ]
         .filter(Boolean)

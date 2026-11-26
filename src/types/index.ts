@@ -83,6 +83,8 @@ export interface UnterhaltsTabelleConfig {
   bedarfVolljaehrigEigenerHaushalt: number;
   /** darin enthaltener Anteil für Warmmiete (nur Information) */
   wohnkostenanteilEigenerHaushalt: number;
+  /** Anteil der Wohnkosten im Tabellenbetrag Minderjähriger (Faustwert 20 %) – Basis für Wohnmehrbedarf im Wechselmodell */
+  wohnkostenanteilTabelle: number;
   /** Ehegattenunterhalt (DT Teil B, Leitlinien NRW 15 und 21.4) */
   ehegatte: EhegattenConfig;
   /**
@@ -401,8 +403,13 @@ export interface CommonChildInput {
   ownIncome: number;
   /** wer erhält das Kindergeld */
   kindergeldRecipient: ParentId;
-  /** Wechselmodell: zusätzlicher Mehrbedarf je Kind (Wohnraum, Fahrtkosten …) */
+  /** Wechselmodell: sonstiger Mehrbedarf je Kind (z. B. Fahrtkosten); Wohnkosten separat in `wechselWohnkosten` */
   wechselMehrkosten: number;
+  /**
+   * Wechselmodell: tatsächliche monatliche Wohnkosten des Kindes im Haushalt von A bzw. B (anteilige Warmmiete,
+   * z. B. nach Quadratmetern). Übersteigt die Summe den Wohnanteil im Tabellenbetrag, entsteht Wohnmehrbedarf.
+   */
+  wechselWohnkosten: Record<ParentId, number>;
   /** nur volljährig: lebt im eigenen Haushalt (z. B. Studium) – fester Bedarf statt Bedarf nach Elterneinkommen */
   eigenerHaushalt: boolean;
   /** Mehr- und Sonderbedarf */

@@ -20,6 +20,20 @@ export const CHANGELOG_ART_LABEL: Record<ChangelogArt, string> = {
 
 export const CHANGELOG: ChangelogEintrag[] = [
   {
+    version: '1.2.0',
+    datum: '2026-11-26',
+    aenderungen: [
+      {
+        art: 'neu',
+        text: 'Wechselmodell: Wohnkosten des Kindes in beiden Haushalten eingeben. Was über den Wohnanteil im Tabellenbetrag (rund 20 %) hinausgeht, wird als Wohnmehrbedarf nach Haftungsquote verteilt; die eigenen Wohnkosten zählen als Leistung in natura.',
+      },
+      {
+        art: 'geaendert',
+        text: 'Das Feld „Wechselmodell-Mehrkosten“ heißt jetzt „Sonstige Wechselmodell-Mehrkosten“ (z. B. Fahrtkosten). Bisher dort eingetragene Wohnkosten bitte in die neuen Felder übertragen.',
+      },
+    ],
+  },
+  {
     version: '1.1.0',
     datum: '2026-11-26',
     aenderungen: [

@@ -203,6 +203,9 @@ export function validateInput(input: CalculationInput, jk: Pick<JahresKonfigurat
     const years = checkAge(issues, c.age, input.referenceDate, `children.${i}.age`, cl);
     checkNonNegative(issues, c.ownIncome, `children.${i}.ownIncome`, `${cl}: Eigenes Einkommen`);
     checkNonNegative(issues, c.wechselMehrkosten, `children.${i}.wechselMehrkosten`, `${cl}: Mehrkosten`);
+    for (const p of ['A', 'B'] as const) {
+      checkNonNegative(issues, c.wechselWohnkosten?.[p] ?? 0, `children.${i}.wechselWohnkosten.${p}`, `${cl}: Wohnkosten`);
+    }
     if (c.care !== 'A' && c.care !== 'B' && c.care !== 'wechsel') {
       issues.push({ severity: 'error', field: `children.${i}.care`, message: `${cl}: Betreuungsmodell fehlt.` });
     }
@@ -243,10 +246,10 @@ export function validateInput(input: CalculationInput, jk: Pick<JahresKonfigurat
         message: `${cl}: „Eigener Haushalt“ gilt nur für volljährige Kinder und wird hier ignoriert.`,
       });
     }
-    if (c.care !== 'wechsel' && c.wechselMehrkosten > 0) {
+    if (c.care !== 'wechsel' && (c.wechselMehrkosten > 0 || (c.wechselWohnkosten?.A ?? 0) > 0 || (c.wechselWohnkosten?.B ?? 0) > 0)) {
       issues.push({
         severity: 'warning',
-        message: `${cl}: Wechselmodell-Mehrkosten werden nur bei Betreuung im Wechselmodell berücksichtigt.`,
+        message: `${cl}: Wechselmodell-Mehrkosten und -Wohnkosten werden nur bei Betreuung im Wechselmodell berücksichtigt.`,
       });
     }
   });

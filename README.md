@@ -176,6 +176,10 @@ Gemischte Konstellationen werden in dieser Reihenfolge berechnet (`engine/index.
   Der Haftungsanteil jedes Elternteils ist auf den Tabellenbetrag nach seinem eigenen Einkommen begrenzt
   (zzgl. Quotenanteil an Mehrkosten; BGH XII ZB 565/15 Rn. 26 f.) – das greift bei deutlich unterschiedlichen
   Einkommen regelmäßig.
+- **Wohnmehrbedarf im Wechselmodell:** Eingabe der tatsächlichen Wohnkosten des Kindes je Haushalt (z. B. anteilige
+  Warmmiete nach m²). Wohnmehrbedarf = Summe − Wohnanteil im Tabellenbetrag (Faustwert 20 %, `wohnkostenanteilTabelle`).
+  Er erhöht den Bedarf; jeder Elternteil leistet in natura seine eigenen Wohnkosten + ½ des übrigen Bedarfs, der
+  Barausgleich ist die halbe Differenz von (Haftungsanteil − Naturalleistung).
 
 ## Datenstand (Prüfung vom 20.11.2026)
 

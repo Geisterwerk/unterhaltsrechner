@@ -120,18 +120,36 @@ export function calculateWechsel(
   );
 
   // ---------------------------------------------------------------- Schritt 4: Bedarf
+  // Wohnmehrbedarf: tatsächliche Wohnkosten des Kindes in beiden Haushalten, soweit sie den im
+  // Tabellenbetrag enthaltenen Wohnanteil übersteigen (BGH XII ZB 565/15 – Mehrbedarf im Wechselmodell)
   const bedarf = new Map<string, number>();
+  const wohnen = new Map<string, { A: number; B: number; summe: number; mehrbedarf: number }>();
+  const mehrkosten = new Map<string, number>();
   for (const m of minors) {
     const t = tableAmount(group, m.stage, cfg);
     const mk = Math.max(0, m.input.wechselMehrkosten);
     const own = minorOwnIncomeCredit(m);
-    const b = round2(Math.max(0, t + mk - own));
+    const wA = Math.max(0, m.input.wechselWohnkosten?.A ?? 0);
+    const wB = Math.max(0, m.input.wechselWohnkosten?.B ?? 0);
+    const summe = round2(wA + wB);
+    const imTabellenbetrag = round2(t * cfg.wohnkostenanteilTabelle);
+    const wohnMehr = summe > 0 ? round2(Math.max(0, summe - imTabellenbetrag)) : 0;
+    wohnen.set(m.input.id, { A: wA, B: wB, summe, mehrbedarf: wohnMehr });
+    mehrkosten.set(m.input.id, round2(mk + wohnMehr));
+    const b = round2(Math.max(0, t + wohnMehr + mk - own));
     bedarf.set(m.input.id, b);
+    if (summe > 0) {
+      s.add(4, {
+        label: `${m.input.label}: Wohnmehrbedarf`,
+        value: `Wohnkosten ${fmt(wA)} + ${fmt(wB)} = ${fmt(summe)} − Wohnanteil im Tabellenbetrag ${fmt(imTabellenbetrag)} = ${fmt(wohnMehr)}`,
+        note: `Wohnanteil ${Math.round(cfg.wohnkostenanteilTabelle * 100)} % von ${fmt(t)} (Faustwert)`,
+      });
+    }
     s.add(4, {
       label: `${m.input.label} (${AGE_STAGE_LABELS[m.stage]})`,
-      value: `Tabelle ${fmt(t)}${mk > 0 ? ` + Mehrkosten ${fmt(mk)}` : ''}${
-        own > 0 ? ` − ½ Eigeneinkommen ${fmt(own)}` : ''
-      } = ${fmt(b)}`,
+      value: `Tabelle ${fmt(t)}${wohnMehr > 0 ? ` + Wohnmehrbedarf ${fmt(wohnMehr)}` : ''}${
+        mk > 0 ? ` + Mehrkosten ${fmt(mk)}` : ''
+      }${own > 0 ? ` − ½ Eigeneinkommen ${fmt(own)}` : ''} = ${fmt(b)}`,
     });
   }
   s.add(4, {
@@ -182,12 +200,12 @@ export function calculateWechsel(
   const totalShare: Record<ParentId, number> = { A: 0, B: 0 };
   for (const m of minors) {
     const b = bedarf.get(m.input.id)!;
-    const mk = Math.max(0, m.input.wechselMehrkosten);
+    const mk = mehrkosten.get(m.input.id)!;
     const own = minorOwnIncomeCredit(m);
     const entry = {} as Record<ParentId, { anteil: number; ungekappt: number; grenze: number }>;
     for (const p of PARENTS) {
       const ungekappt = round2(b * quote[p]);
-      // Grenze: eigener Tabellenbetrag zzgl. Quotenanteil an Mehrkosten abzgl. Quotenanteil am Kindeseinkommen
+      // Grenze: eigener Tabellenbetrag zzgl. Quotenanteil an (Wohn-)Mehrkosten abzgl. Quotenanteil am Kindeseinkommen
       const grenze = round2(Math.max(0, tableAmount(eigeneGruppe[p], m.stage, cfg) + (mk - own) * quote[p]));
       entry[p] = { anteil: Math.min(ungekappt, grenze), ungekappt, grenze };
       totalShare[p] += entry[p].anteil;
@@ -227,8 +245,13 @@ export function calculateWechsel(
     const { A: sa, B: sb } = shares.get(m.input.id)!;
     const shareA = sa.anteil;
     const shareB = sb.anteil;
-    // Barunterhalt: jeder deckt die Hälfte in natura, Ausgleich = halbe Differenz
-    const barAtoB = round2((shareA - shareB) / 2);
+    // Naturalleistung je Elternteil: eigene Wohnkosten des Kindes + Hälfte des übrigen Bedarfs.
+    // Ohne Wohnkosten: jeder deckt die Hälfte in natura, Ausgleich = halbe Differenz der Haftungsanteile.
+    const w = wohnen.get(m.input.id)!;
+    const gedeckt = round2(shareA + shareB);
+    const uebrig = round2(Math.max(0, gedeckt - w.summe));
+    const natura: Record<ParentId, number> = { A: round2(w.A + uebrig / 2), B: round2(w.B + uebrig / 2) };
+    const barAtoB = round2((shareA - natura.A - (shareB - natura.B)) / 2);
     // Kindergeld: Empfänger gibt dem anderen dessen Anteil heraus
     const kgRecipient = m.input.kindergeldRecipient;
     const nonRecipient: ParentId = kgRecipient === 'A' ? 'B' : 'A';
@@ -256,8 +279,17 @@ export function calculateWechsel(
         value: `${label('A')} ${fmt(shareA)} · ${label('B')} ${fmt(shareB)}`,
         note: sa.anteil < sa.ungekappt || sb.anteil < sb.ungekappt ? 'nach Begrenzung auf den eigenen Tabellenbetrag' : undefined,
       },
+      ...(w.summe > 0
+        ? [
+            {
+              label: '  Leistung in natura',
+              value: `${label('A')} ${fmt(natura.A)} · ${label('B')} ${fmt(natura.B)}`,
+              note: `eigene Wohnkosten des Kindes + ½ des übrigen Bedarfs (${fmt(uebrig)})`,
+            },
+          ]
+        : []),
       {
-        label: '  Barunterhaltsausgleich (½ Differenz)',
+        label: w.summe > 0 ? '  Barunterhaltsausgleich (Anteil − Leistung in natura)' : '  Barunterhaltsausgleich (½ Differenz)',
         value: `${fmt(Math.abs(barAtoB))} ${barAtoB >= 0 ? `${label('A')} → ${label('B')}` : `${label('B')} → ${label('A')}`}`,
       },
       {

@@ -153,14 +153,32 @@ export function ChildrenForm({ value, onChange, parents, errorFor, referenceDate
                 </div>
               )}
               {c.care === 'wechsel' && (
-                <Field
-                  label="Wechselmodell-Mehrkosten"
-                  info={info.wechselMehrkosten}
-                  hint="Wohnraummehrbedarf, Fahrtkosten …"
-                  error={errorFor(`children.${i}.wechselMehrkosten`)}
-                >
-                  <MoneyInput value={c.wechselMehrkosten} onChange={(v) => update(i, { wechselMehrkosten: v ?? 0 })} />
-                </Field>
+                <div className="grid grid-cols-1 gap-3 sm:col-span-2 sm:grid-cols-2">
+                  {(['A', 'B'] as const).map((p) => (
+                    <Field
+                      key={p}
+                      label={`Wohnkosten des Kindes bei ${parents[p].label}`}
+                      info={info.wechselWohnkosten}
+                      hint="anteilige Warmmiete pro Monat, z. B. nach m²"
+                      error={errorFor(`children.${i}.wechselWohnkosten.${p}`)}
+                    >
+                      <MoneyInput
+                        value={c.wechselWohnkosten?.[p] ?? 0}
+                        onChange={(v) =>
+                          update(i, { wechselWohnkosten: { ...(c.wechselWohnkosten ?? { A: 0, B: 0 }), [p]: v ?? 0 } })
+                        }
+                      />
+                    </Field>
+                  ))}
+                  <Field
+                    label="Sonstige Wechselmodell-Mehrkosten"
+                    info={info.wechselMehrkosten}
+                    hint="z. B. Fahrtkosten – Wohnkosten oben eintragen"
+                    error={errorFor(`children.${i}.wechselMehrkosten`)}
+                  >
+                    <MoneyInput value={c.wechselMehrkosten} onChange={(v) => update(i, { wechselMehrkosten: v ?? 0 })} />
+                  </Field>
+                </div>
               )}
             </div>
 

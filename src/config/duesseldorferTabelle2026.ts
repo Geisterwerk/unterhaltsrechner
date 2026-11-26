@@ -56,6 +56,8 @@ export const duesseldorferTabelle2026: UnterhaltsTabelleConfig = {
   // Bedarf eines Studierenden / volljährigen Kindes mit eigenem Haushalt (inkl. 440 € Warmmiete)
   bedarfVolljaehrigEigenerHaushalt: 990,
   wohnkostenanteilEigenerHaushalt: 440,
+  // Faustwert aus Praxis und Literatur: rund 20 % des Tabellenbetrags entfallen auf Wohnkosten (nicht amtlich)
+  wohnkostenanteilTabelle: 0.2,
   // Ehegattenunterhalt: DT 2026 Teil B (I. 45 % / 50 %, II. Selbstbehalt 1.600 € / 1.475 €, III. Existenzminimum
   // 1.450 € / 1.200 €); Leitlinien NRW 2026 15.2 (Erwerbsanreiz 1/10), 15.3 (Quotenmethode bis 11.200 €), 21.4
   ehegatte: {
