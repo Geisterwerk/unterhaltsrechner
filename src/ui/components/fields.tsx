@@ -292,7 +292,7 @@ export function Toggle({ checked, onChange, label, hint, info }: ToggleProps) {
         <label className="flex flex-1 cursor-pointer items-start gap-2 text-sm text-slate-700">
           <input
             type="checkbox"
-            className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 accent-petrol-600 focus:ring-petrol-500"
+            className="mt-0.5 h-4 w-4 shrink-0 rounded-sm border-slate-300 accent-petrol-600 focus:ring-petrol-500"
             checked={checked}
             onChange={(e) => onChange(e.target.checked)}
           />

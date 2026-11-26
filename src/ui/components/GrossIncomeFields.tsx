@@ -99,7 +99,7 @@ export function GrossIncomeFields({ value, onChange, errorFor, fieldPrefix: f }:
               aria-checked={value.quelle === q}
               onClick={() => selectQuelle(q)}
               className={`rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
-                value.quelle === q ? 'bg-white text-petrol-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                value.quelle === q ? 'bg-white text-petrol-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               {q === 'manuell' ? 'Betrag eingeben' : 'Tarifvertrag öffentlicher Dienst'}

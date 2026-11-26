@@ -47,7 +47,7 @@ export function ChangelogButton() {
               <ul className="mt-2 space-y-1.5">
                 {e.aenderungen.map((a) => (
                   <li key={a.text} className="flex items-start gap-2 text-sm text-slate-700">
-                    <span className={`mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${ART_STIL[a.art]}`}>
+                    <span className={`mt-0.5 shrink-0 rounded-sm px-1.5 py-0.5 text-[10px] font-semibold uppercase ${ART_STIL[a.art]}`}>
                       {CHANGELOG_ART_LABEL[a.art]}
                     </span>
                     <span>{a.text}</span>

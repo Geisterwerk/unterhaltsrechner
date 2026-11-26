@@ -20,6 +20,16 @@ export const CHANGELOG_ART_LABEL: Record<ChangelogArt, string> = {
 
 export const CHANGELOG: ChangelogEintrag[] = [
   {
+    version: '1.3.1',
+    datum: '2026-11-26',
+    aenderungen: [
+      {
+        art: 'geaendert',
+        text: 'Technische Aktualisierung auf React 19, Vite 8 und Tailwind CSS 4. Keine Änderung an den Berechnungen.',
+      },
+    ],
+  },
+  {
     version: '1.3.0',
     datum: '2026-11-26',
     aenderungen: [

@@ -72,7 +72,7 @@ export function ParentForm({ id, value, onChange, errorFor, roles, referenceDate
                 aria-checked={value.incomeMode === mode}
                 onClick={() => set('incomeMode', mode)}
                 className={`rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
-                  value.incomeMode === mode ? 'bg-white text-petrol-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  value.incomeMode === mode ? 'bg-white text-petrol-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 {mode === 'netto' ? 'Netto eingeben' : 'Brutto eingeben (Netto schätzen)'}

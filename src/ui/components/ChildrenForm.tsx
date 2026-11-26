@@ -93,7 +93,7 @@ export function ChildrenForm({ value, onChange, parents, errorFor, referenceDate
                     aria-checked={c.care === care}
                     onClick={() => update(i, { care })}
                     className={`truncate rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
-                      c.care === care ? 'bg-white text-petrol-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                      c.care === care ? 'bg-white text-petrol-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                     }`}
                     title={careLabel(care, parents)}
                   >

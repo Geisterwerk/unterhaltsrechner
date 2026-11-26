@@ -1,6 +1,6 @@
 # Kindesunterhaltsrechner
 
-React + TypeScript + Tailwind. Bildet das Residenzmodell, das paritätische Wechselmodell und weitere
+React 19 + TypeScript + Tailwind CSS 4 (Vite 8, Vitest 5). Bildet das Residenzmodell, das paritätische Wechselmodell und weitere
 unterhaltsberechtigte Kinder aus anderen Beziehungen ab.
 
 **Online nutzen:** <https://geisterwerk.github.io/unterhaltsrechner/>. Jeder Push auf `main` wird nach
@@ -115,6 +115,16 @@ inkompatiblen Änderungen am Eingabemodell `DATEI_FORMAT_VERSION` erhöhen und e
 
 `.github/dependabot.yml` prüft wöchentlich npm-Pakete (Minor/Patch gebündelt) und monatlich die GitHub Actions.
 Updates kommen als Pull Request; der Workflow testet und baut Pull Requests, veröffentlicht aber nur Pushes auf `main`.
+
+`package-lock.json` neu erzeugen: unter **Debian** (nicht Alpine, sonst fehlen die glibc-Binärpakete für den
+GitHub-Runner) und mit **npm 11** (npm 10 bricht mit „Cannot read properties of null (reading 'edgesOut')“ ab):
+
+```bash
+docker run --rm -v "$PWD:/app" -v /app/node_modules -w /app node:22-bookworm-slim sh -c "npx -y npm@11 install"
+```
+
+Nach Paketänderungen das Dev-Image neu bauen: `docker compose down`, `docker volume rm unterhaltsrechner_node_modules`,
+`docker compose build`.
 
 ## Szenarienvergleich
 
