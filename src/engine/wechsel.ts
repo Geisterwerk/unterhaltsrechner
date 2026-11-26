@@ -1,6 +1,6 @@
 import type { ChildPayment, ParentId } from '../types';
 import { AGE_STAGE_LABELS } from '../types';
-import { minorOwnIncomeCredit, otherChildZahlbetrag } from './children';
+import { kindeseinkommenText, minorOwnIncomeCredit, otherChildZahlbetrag } from './children';
 import { StepSections, type EngineContext, type PartialResult } from './context';
 import { fmt, pct } from './format';
 import { notwendigerSelbstbehalt } from './income';
@@ -149,7 +149,7 @@ export function calculateWechsel(
       label: `${m.input.label} (${AGE_STAGE_LABELS[m.stage]})`,
       value: `Tabelle ${fmt(t)}${wohnMehr > 0 ? ` + Wohnmehrbedarf ${fmt(wohnMehr)}` : ''}${
         mk > 0 ? ` + Mehrkosten ${fmt(mk)}` : ''
-      }${own > 0 ? ` − ½ Eigeneinkommen ${fmt(own)}` : ''} = ${fmt(b)}`,
+      }${kindeseinkommenText(m, fmt)} = ${fmt(b)}`,
     });
   }
   s.add(4, {

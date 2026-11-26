@@ -56,6 +56,7 @@ export function newCommonChild(index: number): CommonChildInput {
     care: 'B',
     adultRank: 'privilegiert',
     ownIncome: 0,
+    kinderzuschlag: 0,
     kindergeldRecipient: 'B',
     wechselMehrkosten: 0,
     wechselWohnkosten: { A: 0, B: 0 },

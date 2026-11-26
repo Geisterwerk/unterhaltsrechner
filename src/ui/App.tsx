@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { getJahresKonfiguration, JAHRE } from '../config';
 import { calculate } from '../engine';
-import type { CalculationInput, JahresKonfiguration, ParentId, ParentInput } from '../types';
+import type { CalculationInput, JahresKonfiguration, ParentId } from '../types';
 import { ChangelogButton } from './components/ChangelogDialog';
 import { ChildrenForm } from './components/ChildrenForm';
 import { EingabeDateiButtons } from './components/EingabeDateiButtons';
@@ -10,32 +10,12 @@ import { ParentForm } from './components/ParentForm';
 import { ResultPanel } from './components/ResultPanel';
 import { SpousePanel } from './components/SpousePanel';
 import { MAX_SZENARIEN, ScenarioPanel } from './components/ScenarioPanel';
+import { ZeitraumPanel } from './components/ZeitraumPanel';
 import type { Szenario } from '../compare/vergleich';
 import { defaultInput, newId } from './defaults';
 import { infoTexte } from './infoTexte';
 import { JahrContext } from './JahrContext';
-
-/**
- * Beim Jahreswechsel die aus Listen gewählten Sätze (Krankenkasse, Zusatzversorgung) auf die Werte des
- * neuen Jahres setzen; manuell eingegebene Sätze bleiben unverändert.
- */
-function syncParentToYear(p: ParentInput, jk: JahresKonfiguration): ParentInput {
-  const g = p.gross;
-  const kasse = jk.krankenkassen.kassen.find((k) => k.id === g.krankenkasse);
-  const kvZusatzbeitrag =
-    g.krankenkasse === 'durchschnitt' ? jk.lohnsteuer.sv.kvZusatzbeitragDurchschnitt : kasse ? kasse.zusatzbeitrag : g.kvZusatzbeitrag;
-  const zvKasse = jk.zusatzversorgung.kassen.find((k) => k.id === g.zusatzversorgung.kasse);
-  const zusatzversorgung = zvKasse
-    ? {
-        kasse: zvKasse.id,
-        anProzent: zvKasse.anProzent,
-        agUmlageProzent: zvKasse.agUmlageProzent,
-        anSteuerfrei: zvKasse.anSteuerfrei,
-        agBeitragProzent: zvKasse.agBeitragProzent,
-      }
-    : g.zusatzversorgung;
-  return { ...p, gross: { ...g, kvZusatzbeitrag, zusatzversorgung } };
-}
+import { syncParentToYear } from '../zeitraum/jahrAbgleich';
 
 /** Rollen eines Elternteils aus dem Betreuungsmodell der gemeinsamen Kinder ableiten */
 function rolesOf(p: ParentId, input: CalculationInput): string[] {
@@ -256,6 +236,8 @@ export function App() {
           <ResultPanel input={input} result={result} parents={input.parents} tableName={activeTable.name} />
         </div>
       </div>
+
+      <ZeitraumPanel input={input} />
 
       <ScenarioPanel
         input={input}

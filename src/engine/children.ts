@@ -54,6 +54,8 @@ export interface ResolvedCommonChild {
   rang: Rang;
   /** Eigenes Einkommen abzüglich ausbildungsbedingtem Mehrbedarf */
   ownIncomeNet: number;
+  /** Kinderzuschlag je Monat (Einkommen des Kindes, voll bedarfsdeckend) */
+  kinderzuschlag: number;
 }
 
 export function resolveCommonChildren(input: CalculationInput, cfg: UnterhaltsTabelleConfig): ResolvedCommonChild[] {
@@ -67,16 +69,26 @@ export function resolveCommonChildren(input: CalculationInput, cfg: UnterhaltsTa
     // Volljährige mit eigenem Haushalt sind nicht privilegiert (§ 1603 Abs. 2 S. 2 BGB setzt Elternhaushalt voraus)
     const eigenerHaushalt = stage === 3 && c.eigenerHaushalt;
     const rang: Rang = eigenerHaushalt ? 4 : rangOf(stage, c.adultRank);
-    return { input: c, care: c.care, stage, rang, ownIncomeNet };
+    const kinderzuschlag = Math.max(0, c.kinderzuschlag ?? 0);
+    return { input: c, care: c.care, stage, rang, ownIncomeNet, kinderzuschlag };
   });
 }
 
 /**
  * Anrechnung eigenen Kindeseinkommens beim Minderjährigen:
  * hälftig auf den Barunterhalt (andere Hälfte entlastet den Betreuungsunterhalt).
+ * Der Kinderzuschlag (§ 6a BKGG) wird dagegen voll auf den Barbedarf angerechnet (BGH, Beschl. v. 28.10.2020 – XII ZB 512/19).
  */
 export function minorOwnIncomeCredit(child: ResolvedCommonChild): number {
-  return child.stage < 3 ? child.ownIncomeNet / 2 : child.ownIncomeNet;
+  return (child.stage < 3 ? child.ownIncomeNet / 2 : child.ownIncomeNet) + child.kinderzuschlag;
+}
+
+/** Text für den Rechenweg: angerechnetes Kindeseinkommen (leer, wenn keins) */
+export function kindeseinkommenText(child: ResolvedCommonChild, fmt: (v: number) => string): string {
+  const eigen = child.stage < 3 ? child.ownIncomeNet / 2 : child.ownIncomeNet;
+  return `${eigen > 0 ? ` − ${child.stage < 3 ? '½ ' : ''}Eigeneinkommen ${fmt(eigen)}` : ''}${
+    child.kinderzuschlag > 0 ? ` − Kinderzuschlag ${fmt(child.kinderzuschlag)}` : ''
+  }`;
 }
 
 /** Zahlbetrag eines gemeinsamen minderjährigen Kindes in Gruppe g */
@@ -107,6 +119,7 @@ export interface AdultShare {
   bedarf: number;
   kindergeld: number;
   ownIncomeNet: number;
+  kinderzuschlag: number;
   restbedarf: number;
   available: Record<ParentId, number>;
   quote: Record<ParentId, number>;
@@ -146,7 +159,7 @@ export function computeAdultShares(
     const bedarf = eigenerHaushalt ? cfg.bedarfVolljaehrigEigenerHaushalt : tableAmount(group, 3, cfg);
     const aboveTable = eigenerHaushalt ? false : ueber;
     const kindergeld = cfg.kindergeld;
-    const restbedarf = round2(Math.max(0, bedarf - kindergeld - c.ownIncomeNet));
+    const restbedarf = round2(Math.max(0, bedarf - kindergeld - c.ownIncomeNet - c.kinderzuschlag));
 
     const verfuegbar = (sockel: Record<ParentId, number>, mitVorweg: boolean) => ({
       A: round2(Math.max(0, income.A - (mitVorweg ? vorwegabzug.A : 0) - sockel.A)),
@@ -185,7 +198,7 @@ export function computeAdultShares(
       if (begrenzen) s = Math.min(s, available[p]);
       if (!eigenerHaushalt) {
         const eigeneGruppe = findIncomeGroup(income[p], cfg).group;
-        obergrenze[p] = round2(Math.max(0, tableAmount(eigeneGruppe, 3, cfg) - kindergeld - c.ownIncomeNet));
+        obergrenze[p] = round2(Math.max(0, tableAmount(eigeneGruppe, 3, cfg) - kindergeld - c.ownIncomeNet - c.kinderzuschlag));
         s = Math.min(s, obergrenze[p]!);
       }
       share[p] = round2(s);
@@ -202,6 +215,7 @@ export function computeAdultShares(
       bedarf,
       kindergeld,
       ownIncomeNet: c.ownIncomeNet,
+      kinderzuschlag: c.kinderzuschlag,
       restbedarf,
       available,
       quote,

@@ -20,6 +20,21 @@ export const CHANGELOG_ART_LABEL: Record<ChangelogArt, string> = {
 
 export const CHANGELOG: ChangelogEintrag[] = [
   {
+    version: '1.4.0',
+    datum: '2026-11-26',
+    aenderungen: [
+      {
+        art: 'neu',
+        text: 'Zeitraum und Rückstand: Unterhalt Monat für Monat über einen Zeitraum berechnen – mit automatischem Altersstufenwechsel ab dem Geburtstagsmonat, den Werten des jeweiligen Jahres und Abzug bereits gezahlter Beträge.',
+      },
+      {
+        art: 'neu',
+        text: 'Kinderzuschlag (§ 6a BKGG) je Kind erfassen; er mindert den Bedarf in voller Höhe (BGH XII ZB 512/19).',
+      },
+      { art: 'neu', text: 'Automatische Browser-Tests (Desktop und Smartphone) vor jeder Veröffentlichung.' },
+    ],
+  },
+  {
     version: '1.3.1',
     datum: '2026-11-26',
     aenderungen: [

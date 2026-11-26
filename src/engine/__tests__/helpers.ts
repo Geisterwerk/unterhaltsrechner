@@ -52,6 +52,7 @@ export function child(id: string, stage: AgeStage, overrides: Partial<CommonChil
     age: { kind: 'stage', stage },
     adultRank: 'privilegiert',
     ownIncome: 0,
+    kinderzuschlag: 0,
     kindergeldRecipient: 'B',
     wechselMehrkosten: 0,
     wechselWohnkosten: { A: 0, B: 0 },

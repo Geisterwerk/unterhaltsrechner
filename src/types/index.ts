@@ -401,6 +401,8 @@ export interface CommonChildInput {
   adultRank: AdultRank;
   /** eigenes Nettoeinkommen, z. B. Ausbildungsvergütung */
   ownIncome: number;
+  /** tatsächlich bezogener Kinderzuschlag (§ 6a BKGG) je Monat – mindert den Bedarf voll (BGH XII ZB 512/19) */
+  kinderzuschlag: number;
   /** wer erhält das Kindergeld */
   kindergeldRecipient: ParentId;
   /** Wechselmodell: sonstiger Mehrbedarf je Kind (z. B. Fahrtkosten); Wohnkosten separat in `wechselWohnkosten` */

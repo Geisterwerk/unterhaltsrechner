@@ -126,6 +126,34 @@ docker run --rm -v "$PWD:/app" -v /app/node_modules -w /app node:22-bookworm-sli
 Nach Paketänderungen das Dev-Image neu bauen: `docker compose down`, `docker volume rm unterhaltsrechner_node_modules`,
 `docker compose build`.
 
+## Zeitraum und Rückstand
+
+Bereich „Zeitraum und Rückstand“ (`src/zeitraum/zeitraum.ts`): rechnet jeden Monat einzeln mit `calculate()` –
+Stichtag ist der Monatserste (das Alter wird monatsgenau ermittelt, die höhere Altersstufe gilt ab dem
+Geburtstagsmonat, § 1612a Abs. 3 BGB), Jahreswerte je Kalenderjahr (`inputFuerJahr`). Gleiche Folgemonate werden zu
+Abschnitten zusammengefasst. Rückstand = Summe des monatlichen Ausgleichs zwischen den Eltern − bereits gezahlte
+Beträge. Annahmen: Einkommen konstant; einmaliger Sonderbedarf und Zahlungen direkt an volljährige Kinder sind nicht
+enthalten; Monate ohne hinterlegtes Jahr (derzeit vor 2026) werden ausgelassen. § 1613 BGB (Unterhalt für die
+Vergangenheit) und Verjährung prüft der Rechner nicht.
+
+## Kinderzuschlag
+
+Je Kind erfassbar; wird als Einkommen des Kindes in voller Höhe vom Barbedarf abgezogen (BGH, Beschluss vom
+28.10.2020 – XII ZB 512/19), anders als Erwerbseinkommen Minderjähriger (hälftig).
+
+## Browser-Tests
+
+`e2e/*.spec.ts` (Playwright) prüfen den Produktions-Build in Chromium als Desktop und Smartphone (Pixel 7): Laden ohne
+Konsolen-/Netzwerkfehler, Rechenweg, Wechselmodell, Info-Buttons, Änderungsprotokoll, Speichern/Laden, PDF,
+Zeitraum, Kinderzuschlag und keine seitliche Verschiebung. Im Workflow laufen sie vor jeder Veröffentlichung;
+bei Fehlern wird der Bericht als Artefakt angehängt. Lokal:
+
+```bash
+docker run --rm --ipc=host -v "$PWD:/app" -v /app/node_modules -v /app/dist -w /app   mcr.microsoft.com/playwright:v1.65.0-noble sh -c "npm ci && npx playwright test"
+```
+
+Beim Update von `@playwright/test` die Version des Docker-Images angleichen.
+
 ## Szenarienvergleich
 
 „Aktuellen Stand merken“ speichert bis zu 5 Szenarien im Arbeitsspeicher (nicht im Browser-Speicher, gehen beim

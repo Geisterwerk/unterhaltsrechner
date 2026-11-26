@@ -131,6 +131,14 @@ export function ChildrenForm({ value, onChange, parents, errorFor, referenceDate
               >
                 <MoneyInput value={c.ownIncome} onChange={(v) => update(i, { ownIncome: v ?? 0 })} />
               </Field>
+              <Field
+                label="Kinderzuschlag (monatlich)"
+                info={info.kinderzuschlag}
+                hint="von der Familienkasse, nicht das Kindergeld"
+                error={errorFor(`children.${i}.kinderzuschlag`)}
+              >
+                <MoneyInput value={c.kinderzuschlag ?? 0} onChange={(v) => update(i, { kinderzuschlag: v ?? 0 })} />
+              </Field>
               <Field label="Rang (falls volljährig)" info={info.rangVolljaehrig}>
                 <select
                   className="input"

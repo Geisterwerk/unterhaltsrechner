@@ -202,6 +202,7 @@ export function validateInput(input: CalculationInput, jk: Pick<JahresKonfigurat
     const cl = `Gemeinsames Kind ${c.label || i + 1}`;
     const years = checkAge(issues, c.age, input.referenceDate, `children.${i}.age`, cl);
     checkNonNegative(issues, c.ownIncome, `children.${i}.ownIncome`, `${cl}: Eigenes Einkommen`);
+    checkNonNegative(issues, c.kinderzuschlag ?? 0, `children.${i}.kinderzuschlag`, `${cl}: Kinderzuschlag`);
     checkNonNegative(issues, c.wechselMehrkosten, `children.${i}.wechselMehrkosten`, `${cl}: Mehrkosten`);
     for (const p of ['A', 'B'] as const) {
       checkNonNegative(issues, c.wechselWohnkosten?.[p] ?? 0, `children.${i}.wechselWohnkosten.${p}`, `${cl}: Wohnkosten`);

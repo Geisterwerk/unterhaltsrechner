@@ -1,6 +1,6 @@
 import type { ChildPayment, ParentId } from '../types';
 import { AGE_STAGE_LABELS } from '../types';
-import { commonMinorZahlbetrag, minorOwnIncomeCredit, otherChildZahlbetrag, type Rang } from './children';
+import { commonMinorZahlbetrag, kindeseinkommenText, otherChildZahlbetrag, type Rang } from './children';
 import { StepSections, type EngineContext, type PartialResult } from './context';
 import { fmt, pct } from './format';
 import { notwendigerSelbstbehalt } from './income';
@@ -177,10 +177,9 @@ export function calculateBarunterhalt(payer: ParentId, ctx: EngineContext): Part
   for (const m of [...paidMinors, ...(includeFictive ? [...ownMinors, ...wechselMinors] : [])]) {
     const t = tableAmount(group, m.stage, cfg);
     const kg = kindergeldCredit(m.stage, cfg);
-    const own = minorOwnIncomeCredit(m);
     s.add(4, {
       label: `${m.input.label} (${AGE_STAGE_LABELS[m.stage]})`,
-      value: `${fmt(t)} − ½ KG ${fmt(kg)}${own > 0 ? ` − ½ Eigeneinkommen ${fmt(own)}` : ''} = ${fmt(
+      value: `${fmt(t)} − ½ KG ${fmt(kg)}${kindeseinkommenText(m, fmt)} = ${fmt(
         commonMinorZahlbetrag(m, group, cfg),
       )}`,
       note: m.care === recipient ? `zu zahlen (lebt bei ${label(recipient)})` : KIND_NOTE[m.care === 'wechsel' ? 'wechsel' : 'haushalt'],

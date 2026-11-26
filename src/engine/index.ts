@@ -147,7 +147,9 @@ function berechne(input: CalculationInput, tabelleOverride?: UnterhaltsTabelleCo
               : `Gr. ${a.group}, Einkommen beider Eltern ${fmt(a.combinedIncome)}`
           }) − KG ${fmt(
             a.kindergeld,
-          )}${a.ownIncomeNet > 0 ? ` − Eigeneinkommen ${fmt(a.ownIncomeNet)}` : ''} = ${fmt(a.restbedarf)}`,
+          )}${a.ownIncomeNet > 0 ? ` − Eigeneinkommen ${fmt(a.ownIncomeNet)}` : ''}${
+            a.kinderzuschlag > 0 ? ` − Kinderzuschlag ${fmt(a.kinderzuschlag)}` : ''
+          } = ${fmt(a.restbedarf)}`,
         },
         {
           label: `${a.label}: Haftungsquote`,

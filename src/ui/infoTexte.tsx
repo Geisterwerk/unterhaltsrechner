@@ -238,6 +238,38 @@ export function infoTexte(jk: JahresKonfiguration) {
         bei Minderjährigen wird der Rest zur Hälfte angerechnet. Kindergeld nicht eintragen.
       </P>
     ),
+    zeitraum: (
+      <>
+        <P>
+          Rechnet den Unterhalt für jeden Monat des Zeitraums einzeln: Kinder mit Geburtsdatum wechseln automatisch in die
+          höhere Altersstufe – ab dem Monat, in dem sie 6, 12 oder 18 werden (§ 1612a Abs. 3 BGB). Für jeden Monat gelten
+          Tabelle, Kindergeld und Selbstbehalte des jeweiligen Jahres. Einkommen und übrige Eingaben bleiben gleich; ändern
+          sie sich, den Zeitraum aufteilen und mehrfach rechnen.
+        </P>
+        <P>
+          Der Rückstand ist die Summe der monatlichen Ausgleichsbeträge zwischen den Eltern abzüglich der bereits gezahlten
+          Beträge. Einmaliger Sonderbedarf und Zahlungen direkt an volljährige Kinder sind darin nicht enthalten.
+        </P>
+        <P>
+          Für die Vergangenheit kann Unterhalt grundsätzlich erst ab dem Monat verlangt werden, in dem zur Auskunft oder
+          Zahlung aufgefordert wurde (§ 1613 BGB); Ansprüche verjähren nach drei Jahren. Ob und ab wann ein Rückstand geltend
+          gemacht werden kann, bitte fachlich prüfen lassen.
+        </P>
+      </>
+    ),
+    kinderzuschlag: (
+      <>
+        <P>
+          Kinderzuschlag nach § 6a BKGG, den ein Elternteil für dieses Kind tatsächlich von der Familienkasse erhält (Bescheid).
+          Er wird zusätzlich zum Kindergeld an Familien mit kleinem Einkommen gezahlt.
+        </P>
+        <P>
+          Unterhaltsrechtlich ist er Einkommen des Kindes und mindert den Barbedarf in voller Höhe – anders als eigenes
+          Erwerbseinkommen, das bei Minderjährigen nur zur Hälfte angerechnet wird (BGH, Beschluss vom 28.10.2020 – XII ZB 512/19).
+          Weil sich der Kinderzuschlag wiederum nach dem gezahlten Unterhalt richtet, die Werte aus dem aktuellen Bescheid nehmen.
+        </P>
+      </>
+    ),
     wechselMehrkosten: (
       <P>
         Weitere monatliche Kosten, weil das Kind in zwei Haushalten lebt, z. B. Fahrtkosten zwischen den Wohnungen oder doppelt

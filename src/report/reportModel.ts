@@ -207,6 +207,7 @@ export function buildReportModel(
           ? `Wohnkosten ${parents.A.label} ${fmt(c.wechselWohnkosten.A)} / ${parents.B.label} ${fmt(c.wechselWohnkosten.B)}`
           : '',
         c.care === 'wechsel' && c.wechselMehrkosten > 0 ? `Mehrkosten ${fmt(c.wechselMehrkosten)}` : '',
+        (c.kinderzuschlag ?? 0) > 0 ? `Kinderzuschlag ${fmt(c.kinderzuschlag)}` : '',
       ]
         .filter(Boolean)
         .join(', '),
