@@ -16,7 +16,7 @@ export const duesseldorferTabelle2026: UnterhaltsTabelleConfig = {
   name: 'Düsseldorfer Tabelle 2026',
   validFrom: '2026-01-01',
   sourceNote:
-    'Abgeglichen mit der amtlichen Düsseldorfer Tabelle 2026 (Stand 01.01.2026); Pauschale und Ausbildungsaufwand nach Leitlinien NRW 2026.',
+    'Abgeglichen mit der amtlichen Düsseldorfer Tabelle 2026 (Stand 01.01.2026); Pauschale, Ausbildungsaufwand und Altersvorsorge nach den gewählten Leitlinien.',
   incomeGroups: [
     {
       group: 1,

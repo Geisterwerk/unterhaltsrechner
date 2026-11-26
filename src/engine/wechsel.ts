@@ -1,9 +1,10 @@
+import { leitlinienFuer } from '../config/leitlinien';
 import type { ChildPayment, ParentId } from '../types';
 import { AGE_STAGE_LABELS } from '../types';
 import { kindeseinkommenText, kvBeitrag, minorOwnIncomeCredit, otherChildZahlbetrag } from './children';
 import { StepSections, type EngineContext, type PartialResult } from './context';
 import { fmt, pct } from './format';
-import { notwendigerSelbstbehalt } from './income';
+import { haushaltsersparnisHinweis, notwendigerSelbstbehalt } from './income';
 import { getGroup, groupWithStufung, tableAmount } from './table';
 import { round2 } from './util';
 
@@ -238,13 +239,15 @@ export function calculateWechsel(
     }
   }
   for (const p of PARENTS) {
-    const sb = notwendigerSelbstbehalt(input.parents[p], cfg);
+    const sb = notwendigerSelbstbehalt(input.parents[p], cfg, leitlinienFuer(input.options.leitlinien));
     const rest = round2(adjusted[p] - totalShare[p]);
     const ok = rest >= sb;
     s.add(5, {
       label: `Selbstbehaltsprüfung ${label(p)}`,
       value: `${fmt(adjusted[p])} − Haftungsanteil ${fmt(round2(totalShare[p]))} = ${fmt(rest)} ${ok ? '≥' : '<'} ${fmt(sb)}`,
-      note: ok ? 'gewahrt' : 'unterschritten',
+      note: [ok ? 'gewahrt' : 'unterschritten', haushaltsersparnisHinweis(input.parents[p], leitlinienFuer(input.options.leitlinien))]
+        .filter(Boolean)
+        .join('; '),
     });
     if (!ok) {
       issues.push({

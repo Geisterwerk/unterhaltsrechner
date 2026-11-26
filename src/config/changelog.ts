@@ -20,6 +20,20 @@ export const CHANGELOG_ART_LABEL: Record<ChangelogArt, string> = {
 
 export const CHANGELOG: ChangelogEintrag[] = [
   {
+    version: '1.7.0',
+    datum: '2026-11-26',
+    aenderungen: [
+      {
+        art: 'neu',
+        text: 'Selbstbehalt bei Zusammenleben mit einem leistungsfähigen Partner: um 10 % herabgesetzt (Haushaltsersparnis, Leitlinien 21.5) – gegenüber Kindern und beim Ehegattenunterhalt.',
+      },
+      {
+        art: 'geaendert',
+        text: 'Fundstellen im Rechenweg und in den Hinweisen nennen jetzt die gewählten Leitlinien (z. B. „Leitlinien KG Berlin 11.1“) statt immer die Leitlinien NRW.',
+      },
+    ],
+  },
+  {
     version: '1.6.0',
     datum: '2026-11-26',
     aenderungen: [

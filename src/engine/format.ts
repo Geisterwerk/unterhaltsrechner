@@ -1,3 +1,4 @@
+import { fundstelle, leitlinienFuer } from '../config/leitlinien';
 import type { CalculationInput, CalculationStep, ParentId, StepLine } from '../types';
 import type { BereinigtesEinkommen } from './income';
 
@@ -121,7 +122,7 @@ export function incomeStep(
               label: `  − Kranken-/Pflegeversicherung der Kinder`,
               value: i.kvKinder,
               money: true,
-              note: 'trägt der Barunterhaltspflichtige zusätzlich (Leitlinien NRW 11.1)',
+              note: `trägt der Barunterhaltspflichtige zusätzlich (${fundstelle(leitlinienFuer(input.options.leitlinien), '11.1')})`,
             },
           ]
         : []),

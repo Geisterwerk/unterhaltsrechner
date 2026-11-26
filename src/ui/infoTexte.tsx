@@ -119,6 +119,21 @@ export function infoTexte(jk: JahresKonfiguration) {
         </P>
       </>
     ),
+    zusammenleben: (
+      <>
+        <P>
+          Wer mit einem neuen Partner zusammenlebt, spart Wohn- und Haushaltskosten. Deshalb kann der Selbstbehalt herabgesetzt
+          werden – nach allen vier hier wählbaren Leitlinien in der Regel um 10 % (Ziff. 21.5), z. B. von
+          {' '}{eur(t.selbstbehalt.notwendigErwerbstaetig)} auf {eur(Math.round(t.selbstbehalt.notwendigErwerbstaetig * 0.9))}.
+        </P>
+        <P>
+          Voraussetzung: Der Partner ist leistungsfähig, verfügt also selbst über ein Einkommen mindestens in Höhe des notwendigen
+          Selbstbehalts eines Nichterwerbstätigen abzüglich 10 % (rund {eur(Math.round(t.selbstbehalt.notwendigNichtErwerbstaetig * 0.9))};
+          Leitlinien Berlin und Niedersachsen, BGH FamRZ 2025, 1105). Der Rechner senkt den notwendigen Selbstbehalt gegenüber
+          Kindern und den Selbstbehalt beim Ehegattenunterhalt.
+        </P>
+      </>
+    ),
     fiktiv: (
       <>
         <P>
@@ -164,7 +179,7 @@ export function infoTexte(jk: JahresKonfiguration) {
         </P>
         <P>
           Lebt das minderjährige Kind bei einem Elternteil, trägt der andere den Beitrag zusätzlich zum Tabellenunterhalt; sein
-          Einkommen wird vorher um den Beitrag bereinigt (Leitlinien NRW 11.1; BGH XII ZB 338/17). Im Wechselmodell und bei
+          Einkommen wird vorher um den Beitrag bereinigt (Leitlinien Ziff. 11.1; BGH XII ZB 338/17). Im Wechselmodell und bei
           volljährigen Kindern erhöht der Beitrag den Bedarf und wird nach Haftungsquote verteilt.
         </P>
       </>

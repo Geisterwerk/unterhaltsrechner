@@ -1,4 +1,4 @@
-import { leitlinienFuer, type Leitlinien } from '../config/leitlinien';
+import { fundstelle, leitlinienFuer, type Leitlinien } from '../config/leitlinien';
 import type { JahresKonfiguration, ParentInput, UnterhaltsTabelleConfig } from '../types';
 import { nettoAusBrutto, type BruttoNettoResult } from './brutto';
 import { effectiveGross, type TarifErgebnis, type TeilzeitUmrechnung } from './tarif';
@@ -128,7 +128,27 @@ export function bereinigtesEinkommen(
   };
 }
 
+/** Selbstbehalt nach Haushaltsersparnis bei Zusammenleben mit einem leistungsfähigen Partner (Leitlinien 21.5) */
+export function mitHaushaltsersparnis(sb: number, parent: ParentInput, ll: Leitlinien = leitlinienFuer(undefined)): number {
+  return parent.zusammenleben ? round2(sb * (1 - ll.zusammenleben.quote)) : sb;
+}
+
+/** Erläuterung für den Rechenweg, wenn der Selbstbehalt wegen Zusammenlebens herabgesetzt ist */
+export function haushaltsersparnisHinweis(parent: ParentInput, ll: Leitlinien = leitlinienFuer(undefined)): string | undefined {
+  return parent.zusammenleben
+    ? `um ${Math.round(ll.zusammenleben.quote * 100)} % herabgesetzt – Zusammenleben mit leistungsfähigem Partner (${fundstelle(
+        ll,
+        ll.zusammenleben.ziffer,
+      )})`
+    : undefined;
+}
+
 /** Notwendiger Selbstbehalt ggü. minderjährigen und privilegiert volljährigen Kindern */
-export function notwendigerSelbstbehalt(parent: ParentInput, cfg: UnterhaltsTabelleConfig): number {
-  return giltAlsErwerbstaetig(parent) ? cfg.selbstbehalt.notwendigErwerbstaetig : cfg.selbstbehalt.notwendigNichtErwerbstaetig;
+export function notwendigerSelbstbehalt(
+  parent: ParentInput,
+  cfg: UnterhaltsTabelleConfig,
+  ll: Leitlinien = leitlinienFuer(undefined),
+): number {
+  const sb = giltAlsErwerbstaetig(parent) ? cfg.selbstbehalt.notwendigErwerbstaetig : cfg.selbstbehalt.notwendigNichtErwerbstaetig;
+  return mitHaushaltsersparnis(sb, parent, ll);
 }

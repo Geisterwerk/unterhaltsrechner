@@ -1,9 +1,10 @@
+import { leitlinienFuer } from '../config/leitlinien';
 import type { ChildPayment, ParentId } from '../types';
 import { AGE_STAGE_LABELS } from '../types';
 import { commonMinorZahlbetrag, kindeseinkommenText, otherChildZahlbetrag, type Rang } from './children';
 import { StepSections, type EngineContext, type PartialResult } from './context';
 import { fmt, pct } from './format';
-import { notwendigerSelbstbehalt, giltAlsErwerbstaetig } from './income';
+import { giltAlsErwerbstaetig, haushaltsersparnisHinweis, notwendigerSelbstbehalt } from './income';
 import { getGroup, groupWithStufung, kindergeldCredit, tableAmount } from './table';
 import { otherParent, round2, sum } from './util';
 
@@ -197,7 +198,8 @@ export function calculateBarunterhalt(payer: ParentId, ctx: EngineContext): Part
   }
 
   // ---------------------------------------------------------------- Schritt 5
-  const sb = notwendigerSelbstbehalt(payerInput, cfg);
+  const ll = leitlinienFuer(ctx.input.options.leitlinien);
+  const sb = notwendigerSelbstbehalt(payerInput, cfg, ll);
   const amounts = new Map<string, number>(claimants.map((c) => [c.key, c.amountAt(group)]));
   const final = new Map<string, number>();
   const notes = new Map<string, string>();
@@ -206,7 +208,7 @@ export function calculateBarunterhalt(payer: ParentId, ctx: EngineContext): Part
   const rest1 = round2(payerIncome - sumRang1);
   s.add(
     5,
-    { label: `Notwendiger Selbstbehalt ${label(payer)}`, value: sb, money: true },
+    { label: `Notwendiger Selbstbehalt ${label(payer)}`, value: sb, money: true, note: haushaltsersparnisHinweis(payerInput, ll) },
     { label: 'Summe Zahlbeträge Rang 1 (alle gleichrangigen Kinder)', value: sumRang1, money: true },
     { label: 'Verbleibendes Einkommen', value: rest1, money: true },
   );

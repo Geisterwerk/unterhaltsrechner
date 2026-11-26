@@ -21,7 +21,7 @@ import {
 } from './children';
 import { StepSections, type EngineContext, type StepId } from './context';
 import { fmt, incomeStep, pct } from './format';
-import { leitlinienFuer } from '../config/leitlinien';
+import { fundstelle, leitlinienFuer } from '../config/leitlinien';
 import { kvBeitrag } from './children';
 import { bereinigtesEinkommen, notwendigerSelbstbehalt } from './income';
 import { groupWithStufung } from './table';
@@ -123,8 +123,8 @@ function berechne(input: CalculationInput, tabelleOverride?: UnterhaltsTabelleCo
     );
   }
   const adultShares = computeAdultShares(adults, { A: inc.A.bereinigt, B: inc.B.bereinigt }, adultVorweg, cfg, {
-    A: notwendigerSelbstbehalt(input.parents.A, cfg),
-    B: notwendigerSelbstbehalt(input.parents.B, cfg),
+    A: notwendigerSelbstbehalt(input.parents.A, cfg, ll),
+    B: notwendigerSelbstbehalt(input.parents.B, cfg, ll),
   });
 
   const ctx: EngineContext = { input, cfg, inc, common, others, adultShares, label };
@@ -205,7 +205,7 @@ function berechne(input: CalculationInput, tabelleOverride?: UnterhaltsTabelleCo
         label: `${c.input.label}: Kranken-/Pflegeversicherung`,
         value: kv,
         money: true,
-        note: `zusätzlich von ${label(zahler)} zu tragen (nicht im Tabellenbetrag, Leitlinien NRW 11.1)`,
+        note: `zusätzlich von ${label(zahler)} zu tragen (nicht im Tabellenbetrag, ${fundstelle(ll, '11.1')})`,
       });
     } else {
       issues.push({

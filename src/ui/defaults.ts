@@ -48,6 +48,7 @@ export function emptyParent(label: string, netIncome: number): ParentInput {
     otherChildren: [],
     weitereBerechtigte: 0,
     fiktiv: { aktiv: false, netto: 0 },
+    zusammenleben: false,
   };
 }
 

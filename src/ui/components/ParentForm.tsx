@@ -109,6 +109,15 @@ export function ParentForm({ id, value, onChange, errorFor, roles, referenceDate
         </Field>
         <div className="sm:col-span-2">
           <Toggle
+            checked={!!value.zusammenleben}
+            onChange={(v) => set('zusammenleben', v)}
+            label="Lebt mit leistungsfähigem Partner zusammen"
+            hint="Selbstbehalt wegen Haushaltsersparnis um 10 % herabgesetzt"
+            info={info.zusammenleben}
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <Toggle
             checked={!!value.fiktiv?.aktiv}
             onChange={(v) => set('fiktiv', { aktiv: v, netto: value.fiktiv?.netto ?? 0 })}
             label="Fiktives Einkommen ansetzen (Erwerbsobliegenheit verletzt)"

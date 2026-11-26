@@ -385,6 +385,11 @@ export interface ParentInput {
    * das ein geringeres tatsächliches Einkommen ersetzt; der Elternteil gilt dann als erwerbstätig.
    */
   fiktiv?: { aktiv: boolean; netto: number };
+  /**
+   * lebt mit einem leistungsfähigen Partner zusammen: Selbstbehalt wegen Haushaltsersparnis in der Regel um 10 %
+   * herabgesetzt (Leitlinien 21.5)
+   */
+  zusammenleben?: boolean;
 }
 
 /**

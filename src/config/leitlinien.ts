@@ -7,6 +7,8 @@
  * - Süddeutsche Leitlinien (OLG Bamberg, Karlsruhe, München, Nürnberg, Stuttgart, Zweibrücken) 2026, Ziff. 10.1, 10.2.1, 10.2.3
  * - Niedersachsen (OLG Braunschweig, Celle, Oldenburg) 2026, Ziff. 10.1.2, 10.2.1, 10.2.3
  * - Berlin (Kammergericht) 2026, Ziff. 10.1.2, 10.2.1, 10.2.3, 13.2
+ * Gleich nummeriert in allen vier: 11.1 (KV/PV des Kindes), 15.3 (konkrete Bedarfsbemessung), 21.5 (Anpassung des
+ * Selbstbehalts; Haushaltsersparnis bei Zusammenleben mit leistungsfähigem Partner in der Regel 10 %)
  */
 
 export type LeitlinienId = 'nrw' | 'sued' | 'nds' | 'berlin';
@@ -35,6 +37,13 @@ export interface Leitlinien {
    * 'gesamt' = Gesamtaltersvorsorge einschließlich AN- und AG-Anteil zur gesetzlichen RV
    */
   altersvorsorge: { art: 'zusatz' | 'gesamt'; quote: number; text: string };
+  /** Herabsetzung des Selbstbehalts bei Zusammenleben mit einem leistungsfähigen Partner (Haushaltsersparnis) */
+  zusammenleben: { quote: number; ziffer: string };
+}
+
+/** Fundstelle in den gewählten Leitlinien, z. B. „Leitlinien KG Berlin 11.1“ */
+export function fundstelle(ll: Leitlinien, ziffer: string): string {
+  return `${ll.kurz} ${ziffer}`;
 }
 
 export const LEITLINIEN: Record<LeitlinienId, Leitlinien> = {
@@ -52,6 +61,7 @@ export const LEITLINIEN: Record<LeitlinienId, Leitlinien> = {
     },
     ausbildungsaufwand: 'nurElternhaushalt',
     altersvorsorge: { art: 'zusatz', quote: 0.04, text: '4 % des Bruttos zusätzlich (Leitlinien NRW 10.1.2)' },
+    zusammenleben: { quote: 0.1, ziffer: '21.5 Abs. 5' },
   },
   sued: {
     id: 'sued',
@@ -72,6 +82,7 @@ export const LEITLINIEN: Record<LeitlinienId, Leitlinien> = {
       quote: 0.23,
       text: 'insgesamt 23 % des Bruttos einschließlich AN- und AG-Anteil zur Rentenversicherung (SüdL 10.1)',
     },
+    zusammenleben: { quote: 0.1, ziffer: '21.5.3' },
   },
   nds: {
     id: 'nds',
@@ -87,6 +98,7 @@ export const LEITLINIEN: Record<LeitlinienId, Leitlinien> = {
     },
     ausbildungsaufwand: 'immer',
     altersvorsorge: { art: 'zusatz', quote: 0.04, text: '4 % des Gesamtbruttos zusätzlich (Leitlinien Nds 10.1.2)' },
+    zusammenleben: { quote: 0.1, ziffer: '21.5' },
   },
   berlin: {
     id: 'berlin',
@@ -102,6 +114,7 @@ export const LEITLINIEN: Record<LeitlinienId, Leitlinien> = {
     },
     ausbildungsaufwand: 'nurNachweis',
     altersvorsorge: { art: 'zusatz', quote: 0.04, text: '4 % des Gesamtbruttos zusätzlich (Leitlinien KG 10.1.2)' },
+    zusammenleben: { quote: 0.1, ziffer: '21.5' },
   },
 };
 

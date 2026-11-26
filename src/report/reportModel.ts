@@ -171,6 +171,7 @@ function parentSection(p: ParentId, input: CalculationInput, jk: JahresKonfigura
   const z: KeyValue[] = [];
   z.push(['Erwerbsstatus', parent.employed ? 'erwerbstätig' : 'nicht erwerbstätig']);
   if (parent.fiktiv?.aktiv) z.push(['Fiktives (erzielbares) Nettoeinkommen', fmt(parent.fiktiv.netto)]);
+  if (parent.zusammenleben) z.push(['Zusammenleben mit leistungsfähigem Partner', 'ja – Selbstbehalt um 10 % herabgesetzt']);
   if (parent.incomeMode === 'netto') {
     z.push(['Nettoeinkommen (monatlich)', fmt(parent.netIncome)]);
   } else {

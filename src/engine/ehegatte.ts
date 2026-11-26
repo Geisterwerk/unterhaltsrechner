@@ -1,4 +1,5 @@
-import { giltAlsErwerbstaetig } from './income';
+import { fundstelle, leitlinienFuer } from '../config/leitlinien';
+import { giltAlsErwerbstaetig, haushaltsersparnisHinweis, mitHaushaltsersparnis } from './income';
 import type { CalculationStep, ChildPayment, EhegattenErgebnis, ParentId, StepLine, ValidationIssue } from '../types';
 import { otherChildZahlbetrag } from './children';
 import type { EngineContext } from './context';
@@ -58,7 +59,10 @@ export function calculateEhegatte(ctx: EngineContext, kindesunterhalt: ChildPaym
   if (familieneinkommen > e.quotenGrenzeFamilieneinkommen) {
     issues.push({
       severity: 'warning',
-      message: `Ehegattenunterhalt: Familieneinkommen über ${fmt(e.quotenGrenzeFamilieneinkommen)} – der Bedarf ist in der Regel konkret darzulegen (Leitlinien NRW 15.3); die Quote ist dann nur die Obergrenze.`,
+      message: `Ehegattenunterhalt: Familieneinkommen über ${fmt(e.quotenGrenzeFamilieneinkommen)} – der Bedarf ist in der Regel konkret darzulegen (${fundstelle(
+        leitlinienFuer(input.options.leitlinien),
+        '15.3',
+      )}); die Quote ist dann nur die Obergrenze.`,
     });
   }
 
@@ -93,11 +97,17 @@ export function calculateEhegatte(ctx: EngineContext, kindesunterhalt: ChildPaym
   }
 
   // 4. Leistungsfähigkeit des Pflichtigen
-  const sb = giltAlsErwerbstaetig(input.parents[payer]) ? e.selbstbehalt.erwerbstaetig : e.selbstbehalt.nichtErwerbstaetig;
+  const ll = leitlinienFuer(input.options.leitlinien);
+  const sb = mitHaushaltsersparnis(
+    giltAlsErwerbstaetig(input.parents[payer]) ? e.selbstbehalt.erwerbstaetig : e.selbstbehalt.nichtErwerbstaetig,
+    input.parents[payer],
+    ll,
+  );
   const verfuegbar = round2(Math.max(0, inc[payer].bereinigt - kuSumme[payer] - sb));
   lines.push({
     label: `Leistungsfähigkeit ${label(payer)}: ${fmt(inc[payer].bereinigt)} − Kindesunterhalt ${fmt(kuSumme[payer])} − Selbstbehalt ${fmt(sb)}`,
     value: verfuegbar,
+    note: haushaltsersparnisHinweis(input.parents[payer], ll),
     money: true,
   });
   const gekuerzt = anspruch > verfuegbar;

@@ -228,6 +228,12 @@ Gemischte Konstellationen werden in dieser Reihenfolge berechnet (`engine/index.
   den Leitlinien NRW automatisch.
 - **Altersvorsorge:** Höchstgrenze laut Leitlinien (BGH XII ZR 149/01). Bei Brutto-Eingabe wird ein höherer Betrag
   automatisch gekürzt; bei Netto-Eingabe ist das Brutto unbekannt (nur Hinweis).
+- **Zusammenleben mit leistungsfähigem Partner** (Leitlinien 21.5 – NRW 21.5 Abs. 5, SüdL 21.5.3, Nds/KG 21.5):
+  notwendiger Selbstbehalt und Ehegatten-Selbstbehalt um 10 % herabgesetzt (`mitHaushaltsersparnis`). Ob der Partner
+  leistungsfähig ist, prüft der Nutzer (Berlin/Nds: Einkommen mindestens notwendiger Selbstbehalt Nichterwerbstätiger
+  − 10 %).
+- **Fundstellen:** Hinweise im Rechenweg nennen die gewählten Leitlinien (`fundstelle()`); Ziff. 11.1, 15.3 und 21.5
+  sind in allen vier gleich nummeriert.
 - **Fiktives Einkommen** (Erwerbsobliegenheit, § 1603 Abs. 2 BGB, Leitlinien Ziff. 9): ein erzielbares Netto ersetzt
   ein geringeres tatsächliches; der Elternteil gilt als erwerbstätig (Selbstbehalt, Bedarfskontrolle,
   Ehegattenunterhalt). Die Höhe gibt der Nutzer vor (BGH XII ZB 388/24: oft Vollzeit zum Mindestlohn).
