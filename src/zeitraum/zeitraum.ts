@@ -1,7 +1,7 @@
 import { verfuegbareJahre } from '../config';
 import { calculate } from '../engine';
 import { round2 } from '../engine/util';
-import type { AgeStage, CalculationInput, ChildPayment, ParentId, PaymentFlow } from '../types';
+import type { AgeStage, CalculationInput, ChildPayment, ParentId, ParentInput, PaymentFlow } from '../types';
 import { inputFuerJahr } from './jahrAbgleich';
 
 /**
@@ -10,12 +10,21 @@ import { inputFuerJahr } from './jahrAbgleich';
  * - Altersstufen werden je Monat aus dem Geburtsdatum ermittelt; die höhere Stufe gilt ab dem Monat, in dem das
  *   Kind das Lebensjahr vollendet (§ 1612a Abs. 3 BGB).
  * - Je Monat gelten Tabelle, Kindergeld und Selbstbehalte des jeweiligen Kalenderjahres.
- * - Einkommen und übrige Eingaben bleiben über den ganzen Zeitraum gleich.
+ * - Einkommen bleibt gleich, außer es sind Einkommensänderungen ab einem Monat erfasst; übrige Eingaben bleiben gleich.
  * - Einmaliger Sonderbedarf ist nicht enthalten (sonst würde er jeden Monat gezählt).
  * - Rückstand = Summe der monatlichen Ausgleichsbeträge zwischen den Eltern − bereits gezahlte Beträge.
  */
 
 export const MAX_MONATE = 120;
+
+/** Ab einem Monat gilt für einen Elternteil ein neues Einkommen (in der gewählten Einkommensart: netto bzw. brutto) */
+export interface EinkommensAenderung {
+  id: string;
+  /** erster Monat mit dem neuen Einkommen, Format JJJJ-MM */
+  ab: string;
+  elternteil: ParentId;
+  betrag: number;
+}
 
 export interface ZeitraumEingabe {
   /** erster Monat, Format JJJJ-MM */
@@ -24,6 +33,63 @@ export interface ZeitraumEingabe {
   bis: string;
   /** bereits monatlich gezahlter Betrag (an den anderen Elternteil) – optional */
   gezahlt: { zahler: ParentId; betragMonatlich: number } | null;
+  /** Einkommensänderungen innerhalb des Zeitraums */
+  aenderungen?: EinkommensAenderung[];
+}
+
+/** Einstellungen des Zeitraum-Bereichs (Oberfläche, Speicherdatei, PDF) */
+export interface ZeitraumEinstellung {
+  aktiv: boolean;
+  von: string;
+  bis: string;
+  mitGezahlt: boolean;
+  zahler: ParentId;
+  betragMonatlich: number;
+  aenderungen: EinkommensAenderung[];
+}
+
+export function zeitraumStandard(heute: Date = new Date()): ZeitraumEinstellung {
+  const j = heute.getFullYear();
+  return {
+    aktiv: false,
+    von: `${j}-01`,
+    bis: `${j}-${String(heute.getMonth() + 1).padStart(2, '0')}`,
+    mitGezahlt: false,
+    zahler: 'A',
+    betragMonatlich: 0,
+    aenderungen: [],
+  };
+}
+
+export function zeitraumEingabeAus(e: ZeitraumEinstellung): ZeitraumEingabe {
+  return {
+    von: e.von,
+    bis: e.bis,
+    gezahlt: e.mitGezahlt ? { zahler: e.zahler, betragMonatlich: e.betragMonatlich } : null,
+    aenderungen: e.aenderungen,
+  };
+}
+
+/** Bezeichnung der Einkommensart eines Elternteils; null, wenn Änderungen nicht möglich sind (Tarif-Eingabe) */
+export function einkommensart(p: ParentInput): 'netto' | 'brutto' | null {
+  if (p.incomeMode === 'netto') return 'netto';
+  return p.gross.quelle === 'manuell' ? 'brutto' : null;
+}
+
+function mitEinkommen(p: ParentInput, betrag: number): ParentInput {
+  const art = einkommensart(p);
+  if (art === 'netto') return { ...p, netIncome: betrag };
+  if (art === 'brutto') return { ...p, gross: { ...p.gross, bruttoMonatlich: betrag } };
+  return p;
+}
+
+/** im Monat geltende Einkommensänderung je Elternteil (die zuletzt begonnene) */
+function geltendeAenderungen(aenderungen: EinkommensAenderung[], monat: string): Partial<Record<ParentId, EinkommensAenderung>> {
+  const out: Partial<Record<ParentId, EinkommensAenderung>> = {};
+  for (const a of [...aenderungen].sort((x, y) => x.ab.localeCompare(y.ab))) {
+    if (MONAT.test(a.ab) && a.ab <= monat) out[a.elternteil] = a;
+  }
+  return out;
 }
 
 export interface MonatsZahlung {
@@ -38,6 +104,8 @@ export interface MonatsZahlung {
 export interface MonatsErgebnis {
   monat: string;
   ok: boolean;
+  /** im Monat geltendes geändertes Einkommen je Elternteil (nur bei erfassten Änderungen) */
+  einkommen: Partial<Record<ParentId, number>>;
   zahlungen: MonatsZahlung[];
   /** Ausgleich zwischen den Eltern in diesem Monat (A → B positiv) */
   nettoAB: number;
@@ -47,6 +115,7 @@ export interface Abschnitt {
   von: string;
   bis: string;
   monate: number;
+  einkommen: Partial<Record<ParentId, number>>;
   zahlungen: MonatsZahlung[];
   nettoAB: number;
 }
@@ -133,27 +202,39 @@ export function berechneZeitraum(input: CalculationInput, eingabe: ZeitraumEinga
       ausgelassen.push(monat);
       continue;
     }
-    const r = calculate({ ...inputFuerJahr(input, jahr), referenceDate: `${monat}-01` });
+    const geltend = geltendeAenderungen(eingabe.aenderungen ?? [], monat);
+    const basis = inputFuerJahr(input, jahr);
+    const einkommen: Partial<Record<ParentId, number>> = {};
+    const parents = { ...basis.parents };
+    for (const p of ['A', 'B'] as ParentId[]) {
+      const a = geltend[p];
+      if (a && einkommensart(parents[p])) {
+        parents[p] = mitEinkommen(parents[p], a.betrag);
+        einkommen[p] = a.betrag;
+      }
+    }
+    const r = calculate({ ...basis, parents, referenceDate: `${monat}-01` });
     if (!r.ok) {
       ausgelassen.push(monat);
       continue;
     }
     const zahlungen = zahlungenAus(r.payments, r.ehegatte);
     summeAnKinder += r.summary.filter((f) => f.payee === 'Kind').reduce((a, f) => a + f.amount, 0);
-    monate.push({ monat, ok: true, zahlungen, nettoAB: nettoAB(r.summary) });
+    monate.push({ monat, ok: true, einkommen, zahlungen, nettoAB: nettoAB(r.summary) });
   }
 
   // gleiche aufeinanderfolgende Monate zu Abschnitten zusammenfassen
   const abschnitte: Abschnitt[] = [];
-  const schluessel = (m: MonatsErgebnis) => JSON.stringify(m.zahlungen);
+  const schluessel = (m: { zahlungen: MonatsZahlung[]; einkommen: Partial<Record<ParentId, number>> }) =>
+    JSON.stringify([m.zahlungen, m.einkommen.A ?? null, m.einkommen.B ?? null]);
   for (const m of monate) {
     const letzter = abschnitte[abschnitte.length - 1];
     const folgemonat = letzter ? monateZwischen(letzter.bis, m.monat).length === 2 : false;
-    if (letzter && folgemonat && JSON.stringify(letzter.zahlungen) === schluessel(m)) {
+    if (letzter && folgemonat && schluessel(letzter) === schluessel(m)) {
       letzter.bis = m.monat;
       letzter.monate += 1;
     } else {
-      abschnitte.push({ von: m.monat, bis: m.monat, monate: 1, zahlungen: m.zahlungen, nettoAB: m.nettoAB });
+      abschnitte.push({ von: m.monat, bis: m.monat, monate: 1, einkommen: m.einkommen, zahlungen: m.zahlungen, nettoAB: m.nettoAB });
     }
   }
 
@@ -187,6 +268,11 @@ export function berechneZeitraum(input: CalculationInput, eingabe: ZeitraumEinga
   }
   if (input.children.some((c) => (c.bedarfsposten ?? []).some((b) => b.art === 'sonderbedarf' && b.betrag > 0))) {
     hinweise.push('Einmaliger Sonderbedarf ist in der Zeitraumsumme nicht enthalten.');
+  }
+  for (const p of ['A', 'B'] as ParentId[]) {
+    if ((eingabe.aenderungen ?? []).some((a) => a.elternteil === p) && !einkommensart(input.parents[p])) {
+      hinweise.push(`Einkommensänderungen für ${input.parents[p].label} werden nicht berücksichtigt (Tarif-Eingabe) – Bruttolohn dafür manuell eingeben.`);
+    }
   }
   if (summeAnKinder > 0) {
     hinweise.push('Zahlungen direkt an volljährige Kinder sind nicht im Ausgleich zwischen den Eltern enthalten.');

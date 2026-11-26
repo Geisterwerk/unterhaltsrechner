@@ -20,6 +20,17 @@ export const CHANGELOG_ART_LABEL: Record<ChangelogArt, string> = {
 
 export const CHANGELOG: ChangelogEintrag[] = [
   {
+    version: '1.5.0',
+    datum: '2026-11-26',
+    aenderungen: [
+      {
+        art: 'neu',
+        text: 'Zeitraum: Einkommensänderungen ab einem Monat erfassen (z. B. neuer Job ab September) – der Unterhalt wird ab dann mit dem neuen Einkommen berechnet.',
+      },
+      { art: 'neu', text: 'Zeitraum und Rückstand erscheinen im PDF-Bericht und werden beim Speichern der Eingaben mitgespeichert.' },
+    ],
+  },
+  {
     version: '1.4.0',
     datum: '2026-11-26',
     aenderungen: [

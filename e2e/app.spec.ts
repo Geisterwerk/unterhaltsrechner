@@ -100,8 +100,21 @@ test('Zeitraum mit Altersstufenwechsel und Rückstand', async ({ page }) => {
   await expect(panel.getByText('06/2026–12/2026')).toBeVisible();
 
   await panel.getByText('Bereits gezahlte Beträge abziehen').click();
-  await panel.getByRole('spinbutton').first().fill('900');
+  await panel.locator('div', { has: page.getByText('Gezahlt je Monat', { exact: true }) }).getByRole('spinbutton').last().fill('900');
   await expect(panel.getByText('Rückstand Elternteil A', { exact: true })).toBeVisible();
+
+  // Einkommensänderung ab September
+  await panel.getByRole('button', { name: '+ Einkommensänderung' }).click();
+  await panel.getByLabel('Einkommensänderung 1: ab Monat').fill('2026-09');
+  const neu = panel.getByText('Neues Nettoeinkommen', { exact: true }).locator('xpath=ancestor::div[2]');
+  await neu.getByRole('spinbutton').fill('4000');
+  await expect(panel.getByText('09/2026–12/2026')).toBeVisible();
+  await expect(panel.getByText('Nettoeinkommen Elternteil A: 4.000,00 €')).toBeVisible();
+
+  // PDF enthält den Zeitraum
+  const [pdf] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: /PDF/ }).first().click()]);
+  const fs = await import('node:fs');
+  expect(fs.readFileSync(await pdf.path()).length).toBeGreaterThan(1000);
 
   const { breite, inhalt } = await page.evaluate(() => ({
     breite: document.documentElement.clientWidth,

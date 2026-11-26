@@ -13,6 +13,7 @@ import type {
   StepLine,
 } from '../types';
 import { AGE_STAGE_LABELS } from '../types';
+import { monatText, type ZeitraumEinstellung, type ZeitraumErgebnis } from '../zeitraum/zeitraum';
 
 /**
  * Inhalt des PDF-Berichts – unabhängig von der PDF-Bibliothek, damit er testbar bleibt.
@@ -51,6 +52,60 @@ export interface ReportModel {
   eingaben: ReportSection[];
   rechenweg: ReportStep[];
   grundlagen: string[];
+  /** Zeitraumberechnung, falls im Rechner aktiv */
+  zeitraum?: {
+    titel: string;
+    aenderungen: string[];
+    abschnitte: { zeitraum: string; monatlich: string; summe: string }[];
+    summen: KeyValue[];
+    hinweise: string[];
+  };
+}
+
+/** Zeitraum-Abschnitt des Berichts aus Einstellung und Ergebnis */
+export function zeitraumBericht(
+  z: { einstellung: ZeitraumEinstellung; ergebnis: ZeitraumErgebnis },
+  parents: CalculationInput['parents'],
+): NonNullable<ReportModel['zeitraum']> {
+  const { einstellung: e, ergebnis: r } = z;
+  const name = (p: Payee | null) => (p ? payeeText(p, parents) : '');
+  const richtung = (netto: number, betrag: number) =>
+    netto === 0 ? '–' : `${parents[netto > 0 ? 'A' : 'B'].label} an ${parents[netto > 0 ? 'B' : 'A'].label} ${fmt(betrag)}`;
+  const summen: KeyValue[] = [['Ausgleich zwischen den Eltern gesamt', richtung(r.summeNettoAB, Math.abs(r.summeNettoAB))]];
+  if (e.mitGezahlt) summen.push([`Bereits gezahlt von ${parents[e.zahler].label}`, `− ${fmt(r.gezahltGesamt)}`]);
+  if (r.rueckstand) {
+    summen.push([
+      e.mitGezahlt
+        ? `${r.rueckstand.betrag >= 0 ? 'Rückstand' : 'Überzahlung'} ${parents[r.rueckstand.zahler].label}`
+        : `Offen, wenn nichts gezahlt wurde (${parents[r.rueckstand.zahler].label})`,
+      fmt(Math.abs(r.rueckstand.betrag)),
+    ]);
+  }
+  return {
+    titel: `Zeitraum ${monatText(e.von)} bis ${monatText(e.bis)}`,
+    aenderungen: [...e.aenderungen]
+      .sort((a, b) => a.ab.localeCompare(b.ab))
+      .map((a) => `ab ${monatText(a.ab)}: ${parents[a.elternteil].label} ${fmt(a.betrag)} (${
+        parents[a.elternteil].incomeMode === 'netto' ? 'netto' : 'brutto'
+      })`),
+    abschnitte: r.abschnitte.map((a) => ({
+      zeitraum: `${monatText(a.von)}${a.bis !== a.von ? `–${monatText(a.bis)}` : ''} (${a.monate} ${a.monate === 1 ? 'Monat' : 'Monate'})`,
+      monatlich: [
+        ...(['A', 'B'] as ParentId[])
+          .filter((p) => a.einkommen[p] !== undefined)
+          .map((p) => `Einkommen ${parents[p].label}: ${fmt(a.einkommen[p]!)}`),
+        ...(a.zahlungen.length === 0
+          ? ['keine Zahlung']
+          : a.zahlungen.map(
+              (zl) =>
+                `${zl.label}${zl.stage !== null ? ` (${AGE_STAGE_LABELS[zl.stage]})` : ''}: ${name(zl.payer)} an ${name(zl.payee)} ${fmt(zl.amount)}`,
+            )),
+      ].join('\n'),
+      summe: richtung(a.nettoAB, Math.abs(a.nettoAB) * a.monate),
+    })),
+    summen,
+    hinweise: r.hinweise,
+  };
 }
 
 export const RECHTLICHER_HINWEIS =
@@ -150,6 +205,7 @@ export function buildReportModel(
   input: CalculationInput,
   result: CalculationResult,
   erstelltAm: Date = new Date(),
+  zeitraum: { einstellung: ZeitraumEinstellung; ergebnis: ZeitraumErgebnis } | null = null,
 ): ReportModel {
   const jk = getJahresKonfiguration(input.jahr);
   const activeTable = jk.tabelle;
@@ -283,5 +339,6 @@ export function buildReportModel(
     eingaben: [parentSection('A', input, jk), parentSection('B', input, jk), kinder, optionen],
     rechenweg,
     grundlagen,
+    ...(zeitraum && result.ok ? { zeitraum: zeitraumBericht(zeitraum, parents) } : {}),
   };
 }

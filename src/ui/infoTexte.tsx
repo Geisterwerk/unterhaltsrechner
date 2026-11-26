@@ -243,8 +243,8 @@ export function infoTexte(jk: JahresKonfiguration) {
         <P>
           Rechnet den Unterhalt für jeden Monat des Zeitraums einzeln: Kinder mit Geburtsdatum wechseln automatisch in die
           höhere Altersstufe – ab dem Monat, in dem sie 6, 12 oder 18 werden (§ 1612a Abs. 3 BGB). Für jeden Monat gelten
-          Tabelle, Kindergeld und Selbstbehalte des jeweiligen Jahres. Einkommen und übrige Eingaben bleiben gleich; ändern
-          sie sich, den Zeitraum aufteilen und mehrfach rechnen.
+          Tabelle, Kindergeld und Selbstbehalte des jeweiligen Jahres. Ändert sich ein Einkommen, unter
+          „Einkommensänderungen“ den neuen Betrag ab dem jeweiligen Monat erfassen; alle übrigen Eingaben bleiben gleich.
         </P>
         <P>
           Der Rückstand ist die Summe der monatlichen Ausgleichsbeträge zwischen den Eltern abzüglich der bereits gezahlten
@@ -255,6 +255,17 @@ export function infoTexte(jk: JahresKonfiguration) {
           Zahlung aufgefordert wurde (§ 1613 BGB); Ansprüche verjähren nach drei Jahren. Ob und ab wann ein Rückstand geltend
           gemacht werden kann, bitte fachlich prüfen lassen.
         </P>
+      </>
+    ),
+    zeitraumAenderungen: (
+      <>
+        <P>
+          Ab dem angegebenen Monat gilt für den Elternteil das neue Einkommen – bis zu einer späteren Änderung oder bis zum
+          Ende des Zeitraums. Der Betrag gilt in der Einkommensart, die oben beim Elternteil gewählt ist: bei „Netto
+          eingeben“ das monatliche Nettoeinkommen, bei Brutto-Eingabe der monatliche Bruttolohn (Abzüge, Steuerklasse usw.
+          bleiben gleich).
+        </P>
+        <P>Bei Auswahl eines Tarifvertrags sind Änderungen hier nicht möglich – dafür den Bruttolohn manuell eingeben.</P>
       </>
     ),
     kinderzuschlag: (

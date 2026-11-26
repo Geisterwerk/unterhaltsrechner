@@ -1,23 +1,25 @@
 import { useRef, useState } from 'react';
 import type { Szenario } from '../../compare/vergleich';
 import type { CalculationInput } from '../../types';
+import type { ZeitraumEinstellung } from '../../zeitraum/zeitraum';
 import { dateinameFuer, eingabenAlsJson, eingabenAusJson, type GeladeneEingaben } from '../eingabeDatei';
 
 interface Props {
   input: CalculationInput;
   szenarien: Szenario[];
+  zeitraum: ZeitraumEinstellung;
   onLoad: (geladen: GeladeneEingaben) => void;
 }
 
 type Meldung = { art: 'ok' | 'fehler'; text: string; details?: string[] };
 
 /** Eingaben (inkl. gemerkter Szenarien) als Datei sichern bzw. aus einer Datei laden */
-export function EingabeDateiButtons({ input, szenarien, onLoad }: Props) {
+export function EingabeDateiButtons({ input, szenarien, zeitraum, onLoad }: Props) {
   const dateiRef = useRef<HTMLInputElement>(null);
   const [meldung, setMeldung] = useState<Meldung | null>(null);
 
   const speichern = () => {
-    const blob = new Blob([eingabenAlsJson(input, szenarien)], { type: 'application/json' });
+    const blob = new Blob([eingabenAlsJson(input, szenarien, new Date(), zeitraum)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

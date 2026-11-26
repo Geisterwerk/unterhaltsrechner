@@ -156,6 +156,36 @@ export function createReportPdf(model: ReportModel, opts: { compress?: boolean }
     }
   }
 
+  // Zeitraum und Rückstand
+  if (model.zeitraum) {
+    const z = model.zeitraum;
+    y = ensureSpace(doc, y, 30);
+    y = heading(doc, `Zeitraum und Rückstand – ${z.titel}`, y);
+    if (z.aenderungen.length > 0) {
+      y = paragraph(doc, 'Einkommensänderungen:', y, { bold: true, size: 8.5 });
+      for (const a of z.aenderungen) y = paragraph(doc, `• ${a}`, y, { size: 8.5 });
+    }
+    autoTable(doc, {
+      ...tableBase,
+      startY: y + 1,
+      head: [['Zeitraum', 'Monatlich', 'Summe Ausgleich']],
+      body: z.abschnitte.map((a) => [a.zeitraum, a.monatlich, a.summe].map(pdfText)),
+      columnStyles: { 0: { cellWidth: 38 }, 2: { halign: 'right', cellWidth: 48 } },
+    });
+    y = lastY(doc) + 2;
+    autoTable(doc, {
+      ...tableBase,
+      startY: y,
+      body: z.summen.map(([k, v], i) => [
+        { content: pdfText(k), styles: i === z.summen.length - 1 ? { fontStyle: 'bold' } : {} },
+        { content: pdfText(v), styles: { halign: 'right', fontStyle: i === z.summen.length - 1 ? 'bold' : 'normal' } },
+      ]),
+    });
+    y = lastY(doc) + 3;
+    for (const h of z.hinweise) y = paragraph(doc, `• ${h}`, y, { size: 8 });
+    y += 4;
+  }
+
   // Hinweise
   if (model.hinweise.length > 0) {
     y = heading(doc, 'Hinweise', y);

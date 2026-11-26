@@ -132,7 +132,9 @@ Bereich „Zeitraum und Rückstand“ (`src/zeitraum/zeitraum.ts`): rechnet jede
 Stichtag ist der Monatserste (das Alter wird monatsgenau ermittelt, die höhere Altersstufe gilt ab dem
 Geburtstagsmonat, § 1612a Abs. 3 BGB), Jahreswerte je Kalenderjahr (`inputFuerJahr`). Gleiche Folgemonate werden zu
 Abschnitten zusammengefasst. Rückstand = Summe des monatlichen Ausgleichs zwischen den Eltern − bereits gezahlte
-Beträge. Annahmen: Einkommen konstant; einmaliger Sonderbedarf und Zahlungen direkt an volljährige Kinder sind nicht
+Beträge. **Einkommensänderungen** ab einem Monat (je Elternteil, in der gewählten Einkommensart netto bzw.
+manuelles Brutto; bei Tarif-Eingabe nicht möglich) gelten bis zur nächsten Änderung. Der Zeitraum erscheint im
+PDF-Bericht und wird in der Speicherdatei (`zeitraum`, optional) mitgespeichert. Annahmen: übrige Eingaben konstant; einmaliger Sonderbedarf und Zahlungen direkt an volljährige Kinder sind nicht
 enthalten; Monate ohne hinterlegtes Jahr (derzeit vor 2026) werden ausgelassen. § 1613 BGB (Unterhalt für die
 Vergangenheit) und Verjährung prüft der Rechner nicht.
 

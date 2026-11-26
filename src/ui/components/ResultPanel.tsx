@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { fmt } from '../../engine';
 import { buildReportModel } from '../../report/reportModel';
+import type { ZeitraumEinstellung, ZeitraumErgebnis } from '../../zeitraum/zeitraum';
 import type { CalculationInput, CalculationResult, ParentId, ParentInput, Payee, StepLine } from '../../types';
 import { AGE_STAGE_LABELS } from '../../types';
 import { careLabel } from './ChildrenForm';
@@ -10,9 +11,11 @@ interface Props {
   result: CalculationResult;
   parents: Record<ParentId, ParentInput>;
   tableName: string;
+  /** Zeitraumberechnung, falls im Zeitraum-Bereich aktiv – erscheint im PDF */
+  zeitraum: { einstellung: ZeitraumEinstellung; ergebnis: ZeitraumErgebnis } | null;
 }
 
-export function ResultPanel({ input, result, parents, tableName }: Props) {
+export function ResultPanel({ input, result, parents, tableName, zeitraum }: Props) {
   const [pdfState, setPdfState] = useState<'idle' | 'busy' | 'error'>('idle');
 
   /** PDF im Browser erzeugen – die PDF-Bibliothek wird erst bei Bedarf geladen */
@@ -20,7 +23,7 @@ export function ResultPanel({ input, result, parents, tableName }: Props) {
     setPdfState('busy');
     try {
       const { downloadReportPdf } = await import('../../report/pdfReport');
-      downloadReportPdf(buildReportModel(input, result));
+      downloadReportPdf(buildReportModel(input, result, new Date(), zeitraum));
       setPdfState('idle');
     } catch (e) {
       console.error(e);

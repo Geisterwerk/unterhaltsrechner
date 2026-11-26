@@ -4,6 +4,7 @@ import { calculate } from '../../engine';
 import { child, input, otherChild, parent } from '../../engine/__tests__/helpers';
 import { createReportPdf, pdfText, reportFilename } from '../pdfReport';
 import { buildReportModel } from '../reportModel';
+import { berechneZeitraum, zeitraumEingabeAus, zeitraumStandard } from '../../zeitraum/zeitraum';
 
 const beispiel = () => {
   const A = parent('Vater', 0, {
@@ -70,3 +71,44 @@ describe('PDF', () => {
     expect(reportFilename(new Date('2026-11-20T12:00:00Z'))).toBe('Unterhaltsberechnung_2026-11-20.pdf');
   });
 });
+
+describe('Bericht mit Zeitraum', () => {
+  it('enthält Abschnitte, Summen und Einkommensänderungen und lässt sich als PDF erzeugen', () => {
+    const inp = input('residenz', parent('Vater', 3000), parent('Mutter', 1800), [
+      child('Kind 1', 0, { age: { kind: 'birthdate', birthdate: '2020-06-15' } }),
+    ]);
+    const result = calculate(inp, cfg);
+    const einstellung = {
+      ...zeitraumStandard(),
+      aktiv: true,
+      von: '2026-01',
+      bis: '2026-12',
+      mitGezahlt: true,
+      betragMonatlich: 400,
+      aenderungen: [{ id: 'a', ab: '2026-09', elternteil: 'A' as const, betrag: 3500 }],
+    };
+    const ergebnis = berechneZeitraum(inp, zeitraumEingabeAus(einstellung));
+    const m = buildReportModel(inp, result, new Date('2026-11-26T10:00:00'), { einstellung, ergebnis });
+    expect(m.zeitraum!.titel).toBe('Zeitraum 01/2026 bis 12/2026');
+    expect(m.zeitraum!.aenderungen).toEqual(['ab 09/2026: Vater 3.500,00 € (netto)']);
+    expect(m.zeitraum!.abschnitte.map((a) => a.zeitraum)).toEqual([
+      '01/2026–05/2026 (5 Monate)',
+      '06/2026–08/2026 (3 Monate)',
+      '09/2026–12/2026 (4 Monate)',
+    ]);
+    expect(m.zeitraum!.summen.map(([k]) => k)).toEqual([
+      'Ausgleich zwischen den Eltern gesamt',
+      'Bereits gezahlt von Vater',
+      'Rückstand Vater',
+    ]);
+    const pdf = createReportPdf(m, { compress: false });
+    expect(pdf.getNumberOfPages()).toBeGreaterThan(0);
+    expect(pdf.output()).toContain('Zeitraum und R');
+  });
+
+  it('ohne aktiven Zeitraum kein Abschnitt', () => {
+    const { inp, result } = beispiel();
+    expect(buildReportModel(inp, result).zeitraum).toBeUndefined();
+  });
+});
+

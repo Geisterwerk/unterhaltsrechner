@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { defaultInput } from '../defaults';
 import { DATEI_FORMAT, eingabenAlsJson, eingabenAusJson } from '../eingabeDatei';
+import { zeitraumStandard } from '../../zeitraum/zeitraum';
 
 describe('Eingaben als Datei', () => {
   it('speichert und lädt verlustfrei (inkl. Szenarien)', () => {
@@ -46,5 +47,25 @@ describe('Eingaben als Datei', () => {
     expect(() => eingabenAusJson('kein json')).toThrow('keine gültige JSON-Datei');
     expect(() => eingabenAusJson('{"foo":1}')).toThrow('nicht aus dem Unterhaltsrechner');
     expect(() => eingabenAusJson(JSON.stringify({ format: DATEI_FORMAT, formatVersion: 99 }))).toThrow('neueren Version');
+  });
+
+  it('speichert den Zeitraum mit und lädt ihn wieder; ältere Dateien ohne Zeitraum ergeben null', () => {
+    const zeitraum = {
+      ...zeitraumStandard(new Date('2026-11-26')),
+      aktiv: true,
+      mitGezahlt: true,
+      betragMonatlich: 300,
+      aenderungen: [{ id: 'a1', ab: '2026-05', elternteil: 'B' as const, betrag: 2100 }],
+    };
+    const g = eingabenAusJson(eingabenAlsJson(defaultInput(), [], new Date(), zeitraum));
+    expect(g.zeitraum).toEqual(zeitraum);
+    expect(eingabenAusJson(eingabenAlsJson(defaultInput(), [])).zeitraum).toBeNull();
+
+    const kaputt = JSON.parse(eingabenAlsJson(defaultInput(), [], new Date(), zeitraum));
+    kaputt.zeitraum.von = 'gestern';
+    kaputt.zeitraum.aenderungen.push({ ab: 'irgendwann', elternteil: 'X', betrag: 1 });
+    const k = eingabenAusJson(JSON.stringify(kaputt));
+    expect(k.zeitraum!.von).toMatch(/^\d{4}-\d{2}$/);
+    expect(k.zeitraum!.aenderungen).toHaveLength(1);
   });
 });

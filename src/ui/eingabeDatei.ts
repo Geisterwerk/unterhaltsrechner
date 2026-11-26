@@ -3,6 +3,7 @@ import { APP_VERSION } from '../config/changelog';
 import type { Szenario } from '../compare/vergleich';
 import type { AgeInput, AgeStage, BedarfsPosten, CalculationInput, ParentId } from '../types';
 import { defaultInput, emptyParent, newCommonChild, newId, newOtherChild } from './defaults';
+import { zeitraumStandard, type EinkommensAenderung, type ZeitraumEinstellung } from '../zeitraum/zeitraum';
 
 /**
  * Speichern und Laden der Eingaben als JSON-Datei. Die Datei bleibt beim Nutzer; es wird nichts
@@ -23,11 +24,15 @@ export interface EingabeDatei {
   hinweis: string;
   input: CalculationInput;
   szenarien: { name: string; input: CalculationInput }[];
+  /** Einstellungen des Zeitraum-Bereichs (ab Version 1.5; fehlt in älteren Dateien) */
+  zeitraum?: ZeitraumEinstellung;
 }
 
 export interface GeladeneEingaben {
   input: CalculationInput;
   szenarien: Szenario[];
+  /** null, wenn die Datei keinen Zeitraum enthält */
+  zeitraum: ZeitraumEinstellung | null;
   /** Hinweise zur Übernahme, z. B. ersetztes Berechnungsjahr */
   hinweise: string[];
   appVersion: string | null;
@@ -39,7 +44,12 @@ export function dateinameFuer(datum: Date = new Date()): string {
   return `unterhalt-eingaben-${d}.json`;
 }
 
-export function eingabenAlsJson(input: CalculationInput, szenarien: Szenario[], jetzt: Date = new Date()): string {
+export function eingabenAlsJson(
+  input: CalculationInput,
+  szenarien: Szenario[],
+  jetzt: Date = new Date(),
+  zeitraum?: ZeitraumEinstellung,
+): string {
   const datei: EingabeDatei = {
     format: DATEI_FORMAT,
     formatVersion: DATEI_FORMAT_VERSION,
@@ -48,6 +58,7 @@ export function eingabenAlsJson(input: CalculationInput, szenarien: Szenario[], 
     hinweis: 'Enthält persönliche Angaben (Einkommen, Kinder). Nur an Personen weitergeben, die sie sehen dürfen.',
     input,
     szenarien: szenarien.map((s) => ({ name: s.name, input: s.input })),
+    ...(zeitraum ? { zeitraum } : {}),
   };
   return JSON.stringify(datei, null, 2);
 }
@@ -145,6 +156,24 @@ function normalisiereInput(roh: unknown, hinweise: string[]): CalculationInput {
   return input;
 }
 
+const MONAT = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+function normalisiereZeitraum(roh: unknown): ZeitraumEinstellung | null {
+  if (!istObjekt(roh)) return null;
+  const basis = zeitraumStandard();
+  const z = zusammenfuehren(basis, roh);
+  z.zahler = erlaubt(z.zahler, ELTERN, 'A');
+  if (!MONAT.test(z.von)) z.von = basis.von;
+  if (!MONAT.test(z.bis)) z.bis = basis.bis;
+  z.aenderungen = (Array.isArray(roh.aenderungen) ? roh.aenderungen : [])
+    .map((a) => {
+      const ae = zusammenfuehren<EinkommensAenderung>({ id: newId('aenderung'), ab: '', elternteil: 'A', betrag: 0 }, a);
+      return { ...ae, elternteil: erlaubt(ae.elternteil, ELTERN, 'A') };
+    })
+    .filter((a) => MONAT.test(a.ab));
+  return z;
+}
+
 /** Liest eine gespeicherte Datei; wirft einen Fehler mit verständlicher Meldung, wenn sie nicht passt. */
 export function eingabenAusJson(text: string): GeladeneEingaben {
   let daten: unknown;
@@ -172,6 +201,7 @@ export function eingabenAusJson(text: string): GeladeneEingaben {
   return {
     input,
     szenarien,
+    zeitraum: normalisiereZeitraum(daten.zeitraum),
     hinweise: [...new Set(hinweise)],
     appVersion: typeof daten.appVersion === 'string' ? daten.appVersion : null,
     gespeichertAm: typeof daten.gespeichertAm === 'string' ? daten.gespeichertAm : null,

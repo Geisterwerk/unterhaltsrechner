@@ -62,4 +62,44 @@ describe('Unterhalt über einen Zeitraum', () => {
     expect(z.abschnitte).toHaveLength(1);
     expect(z.hinweise.some((h) => h.includes('Geburtsdatum'))).toBe(true);
   });
+
+  it('berücksichtigt Einkommensänderungen ab dem angegebenen Monat', () => {
+    const z = berechneZeitraum(basis('2015-01-01'), {
+      von: '2026-01',
+      bis: '2026-06',
+      gezahlt: null,
+      aenderungen: [{ id: 'x', ab: '2026-04', elternteil: 'A', betrag: 5000 }],
+    });
+    expect(z.abschnitte.map((a) => [a.von, a.bis, a.einkommen.A ?? null])).toEqual([
+      ['2026-01', '2026-03', null],
+      ['2026-04', '2026-06', 5000],
+    ]);
+    expect(z.abschnitte[1].zahlungen[0].amount).toBeGreaterThan(z.abschnitte[0].zahlungen[0].amount);
+  });
+
+  it('nimmt bei mehreren Änderungen die zuletzt begonnene', () => {
+    const z = berechneZeitraum(basis('2015-01-01'), {
+      von: '2026-01',
+      bis: '2026-04',
+      gezahlt: null,
+      aenderungen: [
+        { id: 'b', ab: '2026-03', elternteil: 'A', betrag: 2500 },
+        { id: 'a', ab: '2026-02', elternteil: 'A', betrag: 4000 },
+      ],
+    });
+    expect(z.monate.map((m) => m.einkommen.A ?? null)).toEqual([null, 4000, 2500, 2500]);
+  });
+
+  it('ignoriert Änderungen bei Tarif-Eingabe mit Hinweis', () => {
+    const inp = basis('2015-01-01');
+    inp.parents.A = { ...inp.parents.A, incomeMode: 'brutto', gross: { ...inp.parents.A.gross, quelle: 'tarif' } };
+    const z = berechneZeitraum(inp, {
+      von: '2026-01',
+      bis: '2026-02',
+      gezahlt: null,
+      aenderungen: [{ id: 'x', ab: '2026-02', elternteil: 'A', betrag: 9000 }],
+    });
+    expect(z.abschnitte).toHaveLength(1);
+    expect(z.hinweise.some((h) => h.includes('Tarif-Eingabe'))).toBe(true);
+  });
 });

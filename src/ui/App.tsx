@@ -10,7 +10,8 @@ import { ParentForm } from './components/ParentForm';
 import { ResultPanel } from './components/ResultPanel';
 import { SpousePanel } from './components/SpousePanel';
 import { MAX_SZENARIEN, ScenarioPanel } from './components/ScenarioPanel';
-import { ZeitraumPanel } from './components/ZeitraumPanel';
+import { ZeitraumPanel, zeitraumFehler } from './components/ZeitraumPanel';
+import { berechneZeitraum, zeitraumEingabeAus, zeitraumStandard, type ZeitraumEinstellung } from '../zeitraum/zeitraum';
 import type { Szenario } from '../compare/vergleich';
 import { defaultInput, newId } from './defaults';
 import { infoTexte } from './infoTexte';
@@ -38,6 +39,11 @@ export function App() {
   const activeTable = jk.tabelle;
   const info = infoTexte(jk);
   const result = useMemo(() => calculate(input), [input]);
+  const [zeitraum, setZeitraum] = useState<ZeitraumEinstellung>(() => zeitraumStandard());
+  const zeitraumErgebnis = useMemo(
+    () => (zeitraum.aktiv && !zeitraumFehler(zeitraum) ? berechneZeitraum(input, zeitraumEingabeAus(zeitraum)) : null),
+    [input, zeitraum],
+  );
 
   /** Berechnungsjahr wechseln; Stichtag wandert in das neue Jahr (gleicher Tag/Monat) */
   const setJahr = (jahr: number) =>
@@ -76,10 +82,12 @@ export function App() {
         <div className="max-w-sm">
           <EingabeDateiButtons
             input={input}
+            zeitraum={zeitraum}
             szenarien={szenarien}
             onLoad={(g) => {
               setInput(g.input);
               setSzenarien(g.szenarien.slice(0, MAX_SZENARIEN));
+              setZeitraum(g.zeitraum ?? zeitraumStandard());
             }}
           />
         </div>
@@ -233,11 +241,17 @@ export function App() {
         </div>
 
         <div className="xl:sticky xl:top-4 xl:max-h-[calc(100vh-2rem)] xl:self-start xl:overflow-y-auto">
-          <ResultPanel input={input} result={result} parents={input.parents} tableName={activeTable.name} />
+          <ResultPanel
+            input={input}
+            result={result}
+            parents={input.parents}
+            tableName={activeTable.name}
+            zeitraum={zeitraumErgebnis ? { einstellung: zeitraum, ergebnis: zeitraumErgebnis } : null}
+          />
         </div>
       </div>
 
-      <ZeitraumPanel input={input} />
+      <ZeitraumPanel input={input} einstellung={zeitraum} onChange={setZeitraum} ergebnis={zeitraumErgebnis} />
 
       <ScenarioPanel
         input={input}
