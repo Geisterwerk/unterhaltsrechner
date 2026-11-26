@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { getJahresKonfiguration, JAHRE } from '../config';
 import { calculate } from '../engine';
 import type { CalculationInput, JahresKonfiguration, ParentId, ParentInput } from '../types';
+import { ChangelogButton } from './components/ChangelogDialog';
 import { ChildrenForm } from './components/ChildrenForm';
 import { Field, Toggle } from './components/fields';
 import { ParentForm } from './components/ParentForm';
@@ -82,7 +83,10 @@ export function App() {
     <JahrContext.Provider value={jk}>
     <div className="mx-auto max-w-7xl px-4 py-6">
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Kindesunterhaltsrechner</h1>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <h1 className="text-2xl font-bold text-slate-900">Kindesunterhaltsrechner</h1>
+          <ChangelogButton />
+        </div>
         <p className="text-sm text-slate-600">
           Residenz- und Wechselmodell inkl. weiterer unterhaltsberechtigter Kinder · {activeTable.name}
         </p>
@@ -278,8 +282,8 @@ function LegalNotice() {
       <strong>Rechtlicher Hinweis:</strong> Die Berechnung ist eine unverbindliche Orientierung auf Basis
       vereinfachter Annahmen. Sie ersetzt keine familienrechtliche Beratung im Einzelfall und ist nicht für
       rechtsverbindliche Entscheidungen bestimmt. Abweichende Leitlinien der Oberlandesgerichte sowie
-      Besonderheiten des Einzelfalls (z. B. Mehr- und Sonderbedarf, Erwerbsobliegenheit, Wohnvorteil) bleiben
-      unberücksichtigt.
+      Besonderheiten des Einzelfalls (z. B. Erwerbsobliegenheit, fiktives Einkommen, konkrete Bedarfsermittlung)
+      bleiben unberücksichtigt.
     </div>
   );
 }

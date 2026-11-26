@@ -13,7 +13,8 @@ const PARENTS: ParentId[] = ['A', 'B'];
  * Paritätisches Wechselmodell für alle minderjährigen gemeinsamen Kinder mit Betreuung 'wechsel'
  * (BGH XII ZB 234/13, XII ZB 45/16):
  * Bedarf nach dem zusammengerechneten, um Vorwegabzüge bereinigten Einkommen zzgl. Mehrkosten;
- * Haftung nach Einkommen über dem angemessenen Selbstbehalt;
+ * Haftung nach Einkommen über dem angemessenen Selbstbehalt, je Elternteil höchstens der Tabellenbetrag
+ * nach dem eigenen Einkommen (BGH XII ZB 565/15 Rn. 26 f.);
  * Kindergeld: Barunterhaltsanteil (½) nach Haftungsquote, Betreuungsanteil (½) hälftig.
  *
  * @param barunterhaltVorweg Barunterhalt, den jeder Elternteil bereits für gemeinsame Kinder
@@ -170,11 +171,37 @@ export function calculateWechsel(
     emphasis: true,
   });
 
+  // Haftungsanteile je Kind, begrenzt auf den Tabellenbedarf nach dem eigenen Einkommen
+  // (BGH XII ZB 565/15 Rn. 26 f.: Haftung höchstens wie bei alleiniger Unterhaltshaftung)
+  const stufungsAnzahl = input.options.wechselStufung ? common.length : 2;
+  const eigeneGruppe: Record<ParentId, number> = {
+    A: groupWithStufung(adjusted.A, stufungsAnzahl, cfg).group,
+    B: groupWithStufung(adjusted.B, stufungsAnzahl, cfg).group,
+  };
+  const shares = new Map<string, Record<ParentId, { anteil: number; ungekappt: number; grenze: number }>>();
   const totalShare: Record<ParentId, number> = { A: 0, B: 0 };
   for (const m of minors) {
     const b = bedarf.get(m.input.id)!;
-    totalShare.A += b * quote.A;
-    totalShare.B += b * quote.B;
+    const mk = Math.max(0, m.input.wechselMehrkosten);
+    const own = minorOwnIncomeCredit(m);
+    const entry = {} as Record<ParentId, { anteil: number; ungekappt: number; grenze: number }>;
+    for (const p of PARENTS) {
+      const ungekappt = round2(b * quote[p]);
+      // Grenze: eigener Tabellenbetrag zzgl. Quotenanteil an Mehrkosten abzgl. Quotenanteil am Kindeseinkommen
+      const grenze = round2(Math.max(0, tableAmount(eigeneGruppe[p], m.stage, cfg) + (mk - own) * quote[p]));
+      entry[p] = { anteil: Math.min(ungekappt, grenze), ungekappt, grenze };
+      totalShare[p] += entry[p].anteil;
+    }
+    shares.set(m.input.id, entry);
+    for (const p of PARENTS) {
+      if (entry[p].anteil < entry[p].ungekappt) {
+        s.add(5, {
+          label: `${m.input.label}: Haftungsanteil ${label(p)} begrenzt`,
+          value: `${fmt(entry[p].ungekappt)} → ${fmt(entry[p].anteil)}`,
+          note: `höchstens Tabellenbetrag nach eigenem Einkommen (Gruppe ${eigeneGruppe[p]})`,
+        });
+      }
+    }
   }
   for (const p of PARENTS) {
     const sb = notwendigerSelbstbehalt(input.parents[p], cfg);
@@ -197,9 +224,9 @@ export function calculateWechsel(
   const payments: ChildPayment[] = [];
   let netAtoB = 0;
   for (const m of minors) {
-    const b = bedarf.get(m.input.id)!;
-    const shareA = round2(b * quote.A);
-    const shareB = round2(b * quote.B);
+    const { A: sa, B: sb } = shares.get(m.input.id)!;
+    const shareA = sa.anteil;
+    const shareB = sb.anteil;
     // Barunterhalt: jeder deckt die Hälfte in natura, Ausgleich = halbe Differenz
     const barAtoB = round2((shareA - shareB) / 2);
     // Kindergeld: Empfänger gibt dem anderen dessen Anteil heraus
@@ -227,6 +254,7 @@ export function calculateWechsel(
       {
         label: `${m.input.label}: Haftungsanteile`,
         value: `${label('A')} ${fmt(shareA)} · ${label('B')} ${fmt(shareB)}`,
+        note: sa.anteil < sa.ungekappt || sb.anteil < sb.ungekappt ? 'nach Begrenzung auf den eigenen Tabellenbetrag' : undefined,
       },
       {
         label: '  Barunterhaltsausgleich (½ Differenz)',

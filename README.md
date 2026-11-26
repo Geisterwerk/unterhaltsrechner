@@ -30,7 +30,7 @@ docker compose run --rm app npm run build
 
 ### Engine-Module
 
-- `income.ts` – bereinigtes Nettoeinkommen (Pauschale 5 % oder konkret; Altersvorsorge, Schulden)
+- `income.ts` – bereinigtes Nettoeinkommen (Pauschale 5 % oder konkret; Wohnvorteil, Altersvorsorge max. 4 % Brutto, Schulden)
 - `table.ts` – Gruppenermittlung, Zu-/Herabstufung, Tabellenbeträge, Kindergeldanrechnung
 - `children.ts` – Rang (§ 1609 BGB), weitere Kinder, Haftungsanteile volljähriger Kinder
 - `residenz.ts` – Residenzmodell inkl. Bedarfskontrollbetrag, Selbstbehalt, Mangelfall, Rang 4
@@ -131,6 +131,12 @@ an einen Server) und enthält Ergebnis, Hinweise, alle Eingaben, den Rechenweg s
 den rechtlichen Hinweis. Inhalt: `src/report/reportModel.ts` (reine Funktion, getestet), Layout:
 `src/report/pdfReport.ts` (jsPDF + jspdf-autotable, nur bei Bedarf geladen). Beispiel: `docs/Beispielbericht.pdf`.
 
+## Änderungsprotokoll und Version
+
+Die Seite zeigt im Kopf „Version x.y.z · Was ist neu?“; der Dialog liest `src/config/changelog.ts`.
+Bei jeder Veröffentlichung oben einen Eintrag ergänzen (`neu` / `geaendert` / `korrigiert`) und `version` in
+`package.json` angleichen. Geänderte Rechenergebnisse immer als `geaendert` vermerken.
+
 ## Betreuungsmodell je Kind
 
 Jedes gemeinsame Kind hat ein eigenes Betreuungsmodell: *lebt bei A*, *lebt bei B* oder *Wechselmodell*.
@@ -160,9 +166,16 @@ Gemischte Konstellationen werden in dieser Reihenfolge berechnet (`engine/index.
   Einkommen über dem angemessenen SB.
 - **Berufsbedingte Aufwendungen** (Leitlinien NRW 10.2): grundsätzlich konkret; Pauschale 5 % ohne
   Mindest-/Höchstbetrag nur auf Auswahl.
+- **Altersvorsorge:** zusätzliche Vorsorge bis 4 % des Bruttoeinkommens (BGH XII ZR 149/01). Bei Brutto-Eingabe
+  wird ein höherer Betrag automatisch gekürzt; bei Netto-Eingabe ist das Brutto unbekannt (nur Hinweis).
+- **Wohnvorteil:** mietfreies Wohnen im Eigentum wird als Einkommen hinzugerechnet (Betrag nach Abzug von
+  Zins/Tilgung wird eingegeben, nicht berechnet).
 - **Eigeneinkommen Minderjähriger:** hälftig auf den Barunterhalt angerechnet.
 - **Wechselmodell:** Haftungsquote nach Einkommen über dem angemessenen SB; Ausgleich = ½ Differenz der
   Haftungsanteile; Kindergeld: ½ (Barteil) nach Quote, ½ (Betreuungsteil) hälftig. Keine Bedarfskontrolle.
+  Der Haftungsanteil jedes Elternteils ist auf den Tabellenbetrag nach seinem eigenen Einkommen begrenzt
+  (zzgl. Quotenanteil an Mehrkosten; BGH XII ZB 565/15 Rn. 26 f.) – das greift bei deutlich unterschiedlichen
+  Einkommen regelmäßig.
 
 ## Datenstand (Prüfung vom 20.11.2026)
 

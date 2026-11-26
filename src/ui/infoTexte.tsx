@@ -80,12 +80,30 @@ export function infoTexte(jk: JahresKonfiguration) {
           aber nur, wenn der Mindestbedarf der minderjährigen Kinder gedeckt ist. Pflichtbeiträge zur Rentenversicherung hier
           <strong> nicht</strong> eintragen – sie sind im Netto bereits abgezogen.
         </P>
+        <P>
+          Bei Brutto-Eingabe kürzt der Rechner einen höheren Betrag automatisch auf 4 % des Bruttos (inkl. Sonderzahlungen,
+          umgerechnet auf den Monat). Bei Netto-Eingabe ist das Brutto unbekannt – dann bitte selbst auf die Grenze achten.
+        </P>
       </>
     ),
     schulden: (
       <>
         <P>Monatliche Kreditraten, die berücksichtigt werden können – vor allem Schulden, die schon während des Zusammenlebens bestanden oder unvermeidbar waren.</P>
         <P>Gegenüber minderjährigen Kindern werden Schulden nur eingeschränkt anerkannt (Abwägung im Einzelfall).</P>
+      </>
+    ),
+    wohnvorteil: (
+      <>
+        <P>
+          Wer mietfrei im eigenen Haus oder in der eigenen Wohnung wohnt, spart Miete. Dieser Vorteil zählt unterhaltsrechtlich
+          als Einkommen und wird hinzugerechnet.
+        </P>
+        <P>
+          Anzusetzen ist der Mietwert der Wohnung – nach der Trennung zunächst meist nur eine angemessene Miete für eine kleinere
+          Wohnung – abzüglich Kreditzinsen und nicht umlagefähiger Nebenkosten. Tilgung ist je nach Leitlinien und Einzelfall
+          ganz oder teilweise abziehbar. Ergibt sich ein negativer Wert, hier 0 eintragen und die Belastung ggf. unter
+          „Berücksichtigungsfähige Schulden“ erfassen.
+        </P>
       </>
     ),
     sonstigeAbzuege: (

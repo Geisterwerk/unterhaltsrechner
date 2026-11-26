@@ -41,6 +41,7 @@ export function emptyParent(label: string, netIncome: number): ParentInput {
       altersvorsorge: 0,
       schulden: 0,
       sonstige: 0,
+      wohnvorteil: 0,
     },
     otherChildren: [],
     weitereBerechtigte: 0,

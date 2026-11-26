@@ -24,7 +24,7 @@ describe('Tabelle', () => {
 
 describe('Bereinigtes Einkommen', () => {
   it('Pauschale 5 % ohne Mindest- und Höchstbetrag (Leitlinien 2026)', () => {
-    const d = { berufsbedingtMode: 'pauschal' as const, berufsbedingtKonkret: 0, altersvorsorge: 0, schulden: 0, sonstige: 0 };
+    const d = { berufsbedingtMode: 'pauschal' as const, berufsbedingtKonkret: 0, altersvorsorge: 0, schulden: 0, sonstige: 0, wohnvorteil: 0 };
     expect(bereinigtesEinkommen(parent('A', 800, { deductions: d }), getJahresKonfiguration(2026)).berufsbedingt).toBe(40);
     expect(bereinigtesEinkommen(parent('A', 2000, { deductions: d }), getJahresKonfiguration(2026)).berufsbedingt).toBe(100);
     expect(bereinigtesEinkommen(parent('A', 5000, { deductions: d }), getJahresKonfiguration(2026)).berufsbedingt).toBe(250);
@@ -33,7 +33,7 @@ describe('Bereinigtes Einkommen', () => {
   it('konkrete Abzüge', () => {
     const r = bereinigtesEinkommen(
       parent('A', 3000, {
-        deductions: { berufsbedingtMode: 'konkret', berufsbedingtKonkret: 220, altersvorsorge: 120, schulden: 200, sonstige: 0 },
+        deductions: { berufsbedingtMode: 'konkret', berufsbedingtKonkret: 220, altersvorsorge: 120, schulden: 200, sonstige: 0, wohnvorteil: 0 },
       }),
       getJahresKonfiguration(2026),
     );

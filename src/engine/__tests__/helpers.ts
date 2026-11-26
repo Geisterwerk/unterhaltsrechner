@@ -34,6 +34,7 @@ export function parent(label: string, netIncome: number, overrides: Partial<Pare
       altersvorsorge: 0,
       schulden: 0,
       sonstige: 0,
+      wohnvorteil: 0,
     },
     otherChildren: [],
     weitereBerechtigte: 0,

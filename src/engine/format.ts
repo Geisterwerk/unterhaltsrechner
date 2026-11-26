@@ -98,8 +98,11 @@ export function incomeStep(
         money: true,
         note: b ? 'Jahresnetto / 12' : undefined,
       },
+      ...(i.wohnvorteil > 0
+        ? [{ label: `  + Wohnvorteil`, value: i.wohnvorteil, money: true, note: 'mietfreies Wohnen im Eigentum' }]
+        : []),
       { label: `  − berufsbedingte Aufwendungen`, value: i.berufsbedingt, money: true, note: i.berufsbedingtHinweis },
-      { label: `  − Altersvorsorge`, value: i.altersvorsorge, money: true },
+      { label: `  − Altersvorsorge`, value: i.altersvorsorge, money: true, note: i.altersvorsorgeHinweis },
       { label: `  − berücksichtigungsfähige Schulden`, value: i.schulden, money: true },
       { label: `  − sonstige Abzüge`, value: i.sonstige, money: true },
       { label: `${l}: bereinigtes Nettoeinkommen`, value: i.bereinigt, money: true, emphasis: true },

@@ -134,6 +134,7 @@ export function validateInput(input: CalculationInput, jk: Pick<JahresKonfigurat
     checkNonNegative(issues, parent.deductions.altersvorsorge, `${f}.altersvorsorge`, `${name}: Altersvorsorge`);
     checkNonNegative(issues, parent.deductions.schulden, `${f}.schulden`, `${name}: Schulden`);
     checkNonNegative(issues, parent.deductions.sonstige, `${f}.sonstige`, `${name}: Sonstige Abzüge`);
+    checkNonNegative(issues, parent.deductions.wohnvorteil ?? 0, `${f}.wohnvorteil`, `${name}: Wohnvorteil`);
     checkNonNegative(issues, parent.weitereBerechtigte, `${f}.weitereBerechtigte`, `${name}: Weitere Berechtigte`);
     if (parent.deductions.berufsbedingtMode === 'konkret') {
       checkNonNegative(

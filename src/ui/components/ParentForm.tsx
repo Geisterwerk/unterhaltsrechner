@@ -138,6 +138,14 @@ export function ParentForm({ id, value, onChange, errorFor, roles, referenceDate
           <MoneyInput value={value.deductions.sonstige} onChange={(v) => setDed('sonstige', v ?? 0)} />
         </Field>
         <Field
+          label="Wohnvorteil (mietfreies Wohnen)"
+          hint="wird dem Einkommen hinzugerechnet"
+          error={errorFor(`${f}.wohnvorteil`)}
+          info={info.wohnvorteil}
+        >
+          <MoneyInput value={value.deductions.wohnvorteil} onChange={(v) => setDed('wohnvorteil', v ?? 0)} />
+        </Field>
+        <Field
           label="Weitere Berechtigte (z. B. Ehegatte)"
           info={info.weitereBerechtigte}
           hint="zählt nur für die Zu-/Herabstufung"

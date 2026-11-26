@@ -56,8 +56,8 @@ export interface ReportModel {
 export const RECHTLICHER_HINWEIS =
   'Die Berechnung ist eine unverbindliche Orientierung auf Basis vereinfachter Annahmen. Sie ersetzt keine ' +
   'familienrechtliche Beratung im Einzelfall und ist nicht für rechtsverbindliche Entscheidungen bestimmt. ' +
-  'Abweichende Leitlinien der Oberlandesgerichte sowie Besonderheiten des Einzelfalls (z. B. Mehr- und ' +
-  'Sonderbedarf, Erwerbsobliegenheit, Wohnvorteil) bleiben unberücksichtigt. Die Ergebnisse sind vor einer ' +
+  'Abweichende Leitlinien der Oberlandesgerichte sowie Besonderheiten des Einzelfalls (z. B. ' +
+  'Erwerbsobliegenheit, fiktives Einkommen, konkrete Bedarfsermittlung) bleiben unberücksichtigt. Die Ergebnisse sind vor einer ' +
   'Weiterverwendung fachlich zu prüfen.';
 
 const datum = (iso: string) => (/^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso.split('-').reverse().join('.') : iso);
@@ -130,7 +130,8 @@ function parentSection(p: ParentId, input: CalculationInput, jk: JahresKonfigura
     'Berufsbedingte Aufwendungen',
     d.berufsbedingtMode === 'pauschal' ? '5 %-Pauschale' : d.berufsbedingtMode === 'konkret' ? fmt(d.berufsbedingtKonkret) : 'keine',
   ]);
-  if (d.altersvorsorge > 0) z.push(['Altersvorsorge', fmt(d.altersvorsorge)]);
+  if ((d.wohnvorteil ?? 0) > 0) z.push(['Wohnvorteil', fmt(d.wohnvorteil)]);
+  if (d.altersvorsorge > 0) z.push(['Altersvorsorge (angegeben)', fmt(d.altersvorsorge)]);
   if (d.schulden > 0) z.push(['Berücksichtigungsfähige Schulden', fmt(d.schulden)]);
   if (d.sonstige > 0) z.push(['Sonstige Abzüge', fmt(d.sonstige)]);
   if (parent.weitereBerechtigte > 0) z.push(['Weitere Berechtigte (z. B. Ehegatte)', String(parent.weitereBerechtigte)]);

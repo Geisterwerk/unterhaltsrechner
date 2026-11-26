@@ -332,9 +332,12 @@ export interface DeductionsInput {
   /** 'pauschal' = 5 %-Pauschale (min/max laut Konfiguration), 'konkret' = Einzelnachweis */
   berufsbedingtMode: 'pauschal' | 'konkret' | 'keine';
   berufsbedingtKonkret: number;
+  /** zusätzliche Altersvorsorge; bei Brutto-Eingabe auf 4 % des Bruttoeinkommens begrenzt */
   altersvorsorge: number;
   schulden: number;
   sonstige: number;
+  /** Wohnvorteil (mietfreies Wohnen im Eigentum, nach Abzug von Zins/Tilgung) – wird hinzugerechnet */
+  wohnvorteil: number;
 }
 
 /**

@@ -43,9 +43,9 @@ export function ScenarioPanel({ input, szenarien, onSave, onLoad, onRemove }: Pr
             in diesem Browserfenster und gehen beim Neuladen verloren.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex w-full gap-2 sm:w-auto">
           <input
-            className="input w-56"
+            className="input min-w-0 flex-1 sm:w-56 sm:flex-none"
             placeholder={`Szenario ${szenarien.length + 1}`}
             value={name}
             onChange={(e) => setName(e.target.value)}

@@ -10,7 +10,7 @@ describe('Residenzmodell', () => {
   it('Standardfall: 2 Kinder, 5 %-Pauschale, Gruppe 3', () => {
     // Netto 3.000 € − Pauschale 150 € (Deckel) = 2.850 € → Gruppe 3, 2 Berechtigte → keine Stufung
     const A = parent('Vater', 3000, {
-      deductions: { berufsbedingtMode: 'pauschal', berufsbedingtKonkret: 0, altersvorsorge: 0, schulden: 0, sonstige: 0 },
+      deductions: { berufsbedingtMode: 'pauschal', berufsbedingtKonkret: 0, altersvorsorge: 0, schulden: 0, sonstige: 0, wohnvorteil: 0 },
     });
     const r = calculate(input('residenz', A, parent('Mutter', 1500), [child('k1', 0), child('k2', 1)]), cfg);
 
@@ -70,7 +70,7 @@ describe('Residenzmodell', () => {
   it('nicht erwerbstätiger Pflichtiger: niedrigerer Selbstbehalt, keine Pauschale', () => {
     const A = parent('Vater', 1600, {
       employed: false,
-      deductions: { berufsbedingtMode: 'pauschal', berufsbedingtKonkret: 0, altersvorsorge: 0, schulden: 0, sonstige: 0 },
+      deductions: { berufsbedingtMode: 'pauschal', berufsbedingtKonkret: 0, altersvorsorge: 0, schulden: 0, sonstige: 0, wohnvorteil: 0 },
     });
     const r = calculate(input('residenz', A, parent('Mutter', 1500), [child('k1', 0)]), cfg);
     // Masse 1.600 − 1.200 = 400 ≥ 356,50 → voller Mindestunterhalt

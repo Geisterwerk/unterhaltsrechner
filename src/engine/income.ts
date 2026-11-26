@@ -11,9 +11,13 @@ export interface BereinigtesEinkommen {
   /** gesetzt, wenn ein Vollzeit-Bruttolohn auf Teilzeit umgerechnet wurde */
   teilzeit?: TeilzeitUmrechnung;
   netto: number;
+  /** hinzugerechneter Wohnvorteil */
+  wohnvorteil: number;
   berufsbedingt: number;
   berufsbedingtHinweis: string;
+  /** berücksichtigte (ggf. auf 4 % des Bruttos gekürzte) Altersvorsorge */
   altersvorsorge: number;
+  altersvorsorgeHinweis?: string;
   schulden: number;
   sonstige: number;
   bereinigt: number;
@@ -21,7 +25,8 @@ export interface BereinigtesEinkommen {
 
 /**
  * Unterhaltsrechtlich bereinigtes Nettoeinkommen:
- * Netto − berufsbedingte Aufwendungen − Altersvorsorge − berücksichtigungsfähige Schulden − Sonstiges.
+ * Netto + Wohnvorteil − berufsbedingte Aufwendungen − Altersvorsorge (max. 4 % Brutto)
+ * − berücksichtigungsfähige Schulden − Sonstiges.
  */
 export function bereinigtesEinkommen(
   parent: ParentInput,
@@ -50,13 +55,42 @@ export function bereinigtesEinkommen(
     berufsbedingtHinweis = 'konkret nachgewiesen';
   }
 
-  const altersvorsorge = Math.max(0, d.altersvorsorge);
+  // zusätzliche Altersvorsorge: bis 4 % des Bruttoeinkommens (BGH XII ZR 149/01); prüfbar nur bei Brutto-Eingabe
+  const altersvorsorgeAngegeben = Math.max(0, d.altersvorsorge);
+  const altersvorsorgeGrenze = brutto ? round2((brutto.jahresbrutto / 12) * ALTERSVORSORGE_QUOTE) : null;
+  const altersvorsorge =
+    altersvorsorgeGrenze === null ? altersvorsorgeAngegeben : Math.min(altersvorsorgeAngegeben, altersvorsorgeGrenze);
+  const altersvorsorgeHinweis =
+    altersvorsorgeAngegeben <= 0
+      ? undefined
+      : altersvorsorgeGrenze === null
+        ? 'Grenze 4 % des Bruttos nicht geprüft (Netto-Eingabe)'
+        : altersvorsorge < altersvorsorgeAngegeben
+          ? `gekürzt von ${altersvorsorgeAngegeben.toLocaleString('de-DE', { minimumFractionDigits: 2 })} € auf 4 % des Bruttos`
+          : `innerhalb der Grenze von 4 % des Bruttos (${altersvorsorgeGrenze.toLocaleString('de-DE', { minimumFractionDigits: 2 })} €)`;
   const schulden = Math.max(0, d.schulden);
   const sonstige = Math.max(0, d.sonstige);
-  const bereinigt = round2(Math.max(0, netto - berufsbedingt - altersvorsorge - schulden - sonstige));
+  const wohnvorteil = Math.max(0, d.wohnvorteil ?? 0);
+  const bereinigt = round2(Math.max(0, netto + wohnvorteil - berufsbedingt - altersvorsorge - schulden - sonstige));
 
-  return { brutto, tarif, teilzeit, netto, berufsbedingt, berufsbedingtHinweis, altersvorsorge, schulden, sonstige, bereinigt };
+  return {
+    brutto,
+    tarif,
+    teilzeit,
+    netto,
+    wohnvorteil,
+    berufsbedingt,
+    berufsbedingtHinweis,
+    altersvorsorge,
+    altersvorsorgeHinweis,
+    schulden,
+    sonstige,
+    bereinigt,
+  };
 }
+
+/** Höchstsatz der zusätzlichen Altersvorsorge beim Kindesunterhalt (Anteil am Bruttoeinkommen) */
+export const ALTERSVORSORGE_QUOTE = 0.04;
 
 /** Notwendiger Selbstbehalt ggü. minderjährigen und privilegiert volljährigen Kindern */
 export function notwendigerSelbstbehalt(parent: ParentInput, cfg: UnterhaltsTabelleConfig): number {
