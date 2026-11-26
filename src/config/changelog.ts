@@ -20,6 +20,16 @@ export const CHANGELOG_ART_LABEL: Record<ChangelogArt, string> = {
 
 export const CHANGELOG: ChangelogEintrag[] = [
   {
+    version: '1.3.0',
+    datum: '2026-11-26',
+    aenderungen: [
+      {
+        art: 'neu',
+        text: 'Eingaben speichern und laden: Alle Eingaben einschließlich gemerkter Szenarien als Datei auf dem eigenen Gerät sichern und später wieder öffnen. Es wird nichts hochgeladen.',
+      },
+    ],
+  },
+  {
     version: '1.2.0',
     datum: '2026-11-26',
     aenderungen: [

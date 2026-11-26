@@ -3,15 +3,16 @@ name: Tests und GitHub Pages
 on:
   push:
     branches: [main]
+  # Pull Requests (z. B. von Dependabot) werden nur getestet, nicht veröffentlicht
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -26,13 +27,18 @@ jobs:
       - run: npm ci
       - run: npx vitest run
       - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
+      - if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
     needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

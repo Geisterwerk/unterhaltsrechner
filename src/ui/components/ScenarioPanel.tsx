@@ -40,7 +40,7 @@ export function ScenarioPanel({ input, szenarien, onSave, onLoad, onRemove }: Pr
           <h2 className="text-lg font-semibold text-slate-900">Szenarien vergleichen</h2>
           <p className="text-xs text-slate-500">
             Aktuellen Stand merken, Eingaben ändern und die Ergebnisse nebeneinander vergleichen. Szenarien bleiben nur
-            in diesem Browserfenster und gehen beim Neuladen verloren.
+            in diesem Browserfenster und gehen beim Neuladen verloren – außer, die Eingaben werden oben als Datei gespeichert.
           </p>
         </div>
         <div className="flex w-full gap-2 sm:w-auto">

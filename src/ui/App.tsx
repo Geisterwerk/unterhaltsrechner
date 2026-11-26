@@ -4,6 +4,7 @@ import { calculate } from '../engine';
 import type { CalculationInput, JahresKonfiguration, ParentId, ParentInput } from '../types';
 import { ChangelogButton } from './components/ChangelogDialog';
 import { ChildrenForm } from './components/ChildrenForm';
+import { EingabeDateiButtons } from './components/EingabeDateiButtons';
 import { Field, Toggle } from './components/fields';
 import { ParentForm } from './components/ParentForm';
 import { ResultPanel } from './components/ResultPanel';
@@ -82,14 +83,26 @@ export function App() {
   return (
     <JahrContext.Provider value={jk}>
     <div className="mx-auto max-w-7xl px-4 py-6">
-      <header className="mb-6">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <h1 className="text-2xl font-bold text-slate-900">Kindesunterhaltsrechner</h1>
-          <ChangelogButton />
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <h1 className="text-2xl font-bold text-slate-900">Kindesunterhaltsrechner</h1>
+            <ChangelogButton />
+          </div>
+          <p className="text-sm text-slate-600">
+            Residenz- und Wechselmodell inkl. weiterer unterhaltsberechtigter Kinder · {activeTable.name}
+          </p>
         </div>
-        <p className="text-sm text-slate-600">
-          Residenz- und Wechselmodell inkl. weiterer unterhaltsberechtigter Kinder · {activeTable.name}
-        </p>
+        <div className="max-w-sm">
+          <EingabeDateiButtons
+            input={input}
+            szenarien={szenarien}
+            onLoad={(g) => {
+              setInput(g.input);
+              setSzenarien(g.szenarien.slice(0, MAX_SZENARIEN));
+            }}
+          />
+        </div>
       </header>
 
       <LegalNotice />

@@ -103,6 +103,19 @@ Checkbox bei volljährigen Kindern: fester Bedarf laut Tabelle (2026: 990 € in
 nach zusammengerechnetem Elterneinkommen; das Kind ist nicht privilegiert (Rang 4), Zahlung nur aus Einkommen
 über dem angemessenen Selbstbehalt.
 
+## Eingaben speichern und laden
+
+Oben rechts: **Eingaben speichern** lädt eine JSON-Datei (`unterhalt-eingaben-JJJJ-MM-TT.json`) mit allen Eingaben und
+gemerkten Szenarien herunter; **Eingaben laden** öffnet sie wieder. Die Datei bleibt auf dem Gerät, nichts wird
+hochgeladen oder im Browser gespeichert. Format und Migration: `src/ui/eingabeDatei.ts` (`formatVersion` 1). Beim
+Laden werden fehlende Felder älterer Dateien mit Standardwerten ergänzt und ungültige Werte ersetzt. Bei
+inkompatiblen Änderungen am Eingabemodell `DATEI_FORMAT_VERSION` erhöhen und eine Migration ergänzen.
+
+## Abhängigkeiten und Workflow
+
+`.github/dependabot.yml` prüft wöchentlich npm-Pakete (Minor/Patch gebündelt) und monatlich die GitHub Actions.
+Updates kommen als Pull Request; der Workflow testet und baut Pull Requests, veröffentlicht aber nur Pushes auf `main`.
+
 ## Szenarienvergleich
 
 „Aktuellen Stand merken“ speichert bis zu 5 Szenarien im Arbeitsspeicher (nicht im Browser-Speicher, gehen beim

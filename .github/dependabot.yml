@@ -1,0 +1,28 @@
+# Dependabot: wöchentliche Prüfung auf neue Versionen.
+# Updates kommen als Pull Request; der Workflow testet sie, veröffentlicht wird erst nach dem Mergen.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 5
+    groups:
+      # kleinere Updates gebündelt, damit nicht jede Abhängigkeit einen eigenen PR erzeugt
+      minor-und-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: 'deps'
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      timezone: Europe/Berlin
+    groups:
+      actions:
+        patterns: ['*']
+    commit-message:
+      prefix: 'ci'
